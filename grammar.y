@@ -17,6 +17,7 @@ void yyerror (char const *s)
 
 int yydebug=1;
 %}
+%define parse.error verbose
 
 %union {
     char *str;
@@ -26,7 +27,7 @@ int yydebug=1;
 %token FLOAT QUAT VOID
 %token RETURN
 %token IDENT
-%define parse.error verbose
+%token DOT PROD DIV MINUS PLUS
 
 %%
 
@@ -58,8 +59,13 @@ statement:	expression ';'
 			| ';'
 			| block
 			| RETURN expression ';'
-expression:	IDENT
+expression:	member
 			| function_call
+			| expression binary_op expression
+member: IDENT
+		| member DOT IDENT
+
+binary_op: PLUS | MINUS | PROD | DIV
 
 function_call:	IDENT params
 params:	'(' params_c expression ')'

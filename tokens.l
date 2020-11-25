@@ -20,9 +20,12 @@ float				return FLOAT;
 quat				return QUAT;
 return				return RETURN;
 void				return VOID;
-{alnum}+		{yylval.str = strdup(yytext); return IDENT;}
-[\t\n\ ]
-.				return yytext[0];
+
+\.					return DOT;
+\*					return PROD;
+\/					return DIV;
+-					return MINUS;
+\+					return PLUS;
 
 {alpha}({alpha}|{digit})*		{ yylval.str = strdup(yytext); return IDENT; }
 .					return yytext[0];

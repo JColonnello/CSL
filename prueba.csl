@@ -13,4 +13,6 @@
 // https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
 
 float dot2( quat v ) = dot(v,v)
-//float ndot( quat a, quat b ) = a.x*b.x - a.y*b.y
+float ndot( quat a, quat b ) = a.x*b.x - a.y*b.y
+
+float sdPlane( quat p ) = p.y
