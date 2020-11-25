@@ -8,6 +8,10 @@ OBJS := $(SOURCES:%.c=$(BUILD_DIR)/%.o)
 DEP_FLAGS := -MMD -MP
 CFLAGS += -g -I $(GENERATED_DIR) $(DEP_FLAGS)
 OBJS_GRAMMAR := $(BUILD_DIR)/$(GENERATED_DIR)/grammar.tab.o $(BUILD_DIR)/$(GENERATED_DIR)/tokens.o
+ifeq ($(DEBUG),1)
+BISON_DEBUG := --debug --verbose
+endif
+
 
 all: $(BUILD_DIR)/$(TARGET)
 
@@ -21,7 +25,8 @@ $(GENERATED_DIR)/grammar.tab.h: $(BUILD_DIR)/$(GENERATED_DIR)/.grammar
 
 $(BUILD_DIR)/$(GENERATED_DIR)/.grammar: grammar.y
 	$(MKDIR_P) $(GENERATED_DIR)
-	bison -d -b generated/grammar $<
+	$(MKDIR_P) $(BUILD_DIR)/$(GENERATED_DIR)
+	bison -d $(BISON_DEBUG) -b generated/grammar $<
 	touch $@
 
 $(GENERATED_DIR)/tokens.c: tokens.l
