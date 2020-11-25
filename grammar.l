@@ -12,10 +12,10 @@ alnum ({alpha}|{digit})
 %%
 
 [\n\t ]
-\/\/.*\n
+\/\/.*\n?
 <INITIAL>"/*" BEGIN(COMMENT);
 <COMMENT>"*/" BEGIN(INITIAL);
-<COMMENT>[^*\n]+ { }
+<COMMENT>[^*\n]+
 
 float				return FLOAT;
 quat				return QUAT;
@@ -30,6 +30,18 @@ void				return VOID;
 \|\|				return DOUBLE_BARS;
 max					return MAX;
 min					return MIN;
+=					return ASSIGN;
+>					return GT;
+\<					return LT;
+>=					return GE;
+\<=					return LE;
+if					return IF;
+else				return ELSE;
+\*=					return PROD_ASSIGN;
+\/=					return DIV_ASSIGN;
+\+=					return PLUS_ASSIGN;
+-=					return MINUS_ASSIGN;
+&&					return AND;
 
 {alpha}({alpha}|{digit})*		{ yylval.str = strdup(yytext); return IDENT; }
 {digit}+\.{digit}+				{ yylval.num = atof(yytext); return FLOAT_CONST; }

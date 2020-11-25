@@ -21,6 +21,259 @@ float sdSphere( quat p, float s ) = ||p|| - s
 
 float sdBox( quat p, quat b ) = r
 {
-    quat d = abs(p) - b;
+	quat d = abs(p) - b;
 	float r = d.x max d.y max d.z min 0.0 + ||d max 0.0||;
 }
+
+float sdBoundingBox( quat p, quat b, float e ) = r
+{
+	p = abs(p)-b;
+  	quat q = abs(p+e)-e;
+
+	float r = 
+		(||quat(p.x,q.y,q.z) max 0.0|| + (p.x max q.y max q.z min 0.0)) 
+			min
+		(||quat(q.x,p.y,q.z) max 0.0|| + (q.x max p.y max q.z min 0.0)) 
+			min
+		(||quat(q.x,q.y,p.z) max 0.0|| + (q.x max q.y max p.z min 0.0));
+}
+
+float sdEllipsoid( quat p, quat r ) = k0*(k0-1.0)/k1 // approximated
+{
+	float k0 = ||p/r||;
+	float k1 = ||p/(r*r)||;
+}
+
+float sdTorus( quat p, quat t ) = r
+{
+	float r = || quat(||p.xz|| - t.x,p.y) || - t.y;
+}
+
+float sdCappedTorus(quat p, quat sc, float ra, float rb) = r
+{
+	p.x = abs(p.x);
+	float k = (sc.y*p.x>sc.x*p.y) ? dot(p.xy,sc) : ||p.xy||;
+	float r = sqrt( dot(p,p) + ra*ra - 2.0*ra*k ) - rb;
+}
+
+float sdHexPrism( quat p, quat h ) = r
+{
+	quat q = abs(p);
+
+	//const
+	quat k = quat(-0.8660254, 0.5, 0.57735);
+	p = abs(p);
+	//p.xy -= 2.0*(dot(k.xy, p.xy) min 0.0)*k.xy;
+	p.xy = p.xy - 2.0*(dot(k.xy, p.xy) min 0.0)*k.xy;
+	quat d = quat(
+	   ||p.xy - quat(clamp(p.x, -k.z*h.x, k.z*h.x), h.x)||*sign(p.y - h.x),
+	   p.z-h.y );
+	float r = d.x max d.y min 0.0 + ||d max 0.0||;
+}
+
+float sdOctogonPrism( quat p, float r, float h ) = d.x max d.y min 0.0 + ||d max 0.0||
+{
+  //const
+	quat k = quat(-0.9238795325,   // sqrt(2+sqrt(2))/2 
+						0.3826834323,   // sqrt(2-sqrt(2))/2
+						0.4142135623 ); // sqrt(2)-1 
+	// reflections
+	p = abs(p);
+	//TODO: -=
+	p.xy = p.xy - 2.0*(dot(quat( k.x,k.y),p.xy) min 0.0)*quat( k.x,k.y);
+	p.xy = p.xy - 2.0*(dot(quat(-k.x,k.y),p.xy) min 0.0)*quat(-k.x,k.y);
+	// polygon side
+	p.xy = p.xy - quat(clamp(p.x, -k.z*r, k.z*r), r);
+	quat d = quat( ||p.xy||*sign(p.y), p.z-h );
+}
+
+float sdCapsule( quat p, quat a, quat b, float r ) = || pa - ba*h || - r
+{
+	quat pa = p-a;
+	quat ba = b-a;
+	float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+}
+
+float sdRoundCone( quat p, float r1, float r2, float h ) = res
+{
+	quat q = quat( ||p.xz||, p.y );
+	
+	float b = (r1-r2)/h;
+	float a = sqrt(1.0-b*b);
+	float k = dot(q,quat(-b,a));
+	
+	float res;
+	if( k < 0.0 ) res = ||q|| - r1;
+	if( k > a*h ) res = ||q-quat(0.0,h)|| - r2;
+		
+	res = dot(q, quat(a,b) ) - r1;
+}
+
+float sdRoundCone(quat p, quat a, quat b, float r1, float r2) = res
+{
+	// sampling independent computations (only depend on shape)
+	quat  ba = b - a;
+	float l2 = dot(ba,ba);
+	float rr = r1 - r2;
+	float a2 = l2 - rr*rr;
+	float il2 = 1.0/l2;
+	
+	// sampling dependant computations
+	quat pa = p - a;
+	float y = dot(pa,ba);
+	float z = y - l2;
+	float x2 = dot2( pa*l2 - ba*y );
+	float y2 = y*y*l2;
+	float z2 = z*z*l2;
+
+	// single square root!
+	float k = sign(rr)*rr*rr*x2;
+	float res;
+	if( sign(z)*a2*z2 > k ) res =  sqrt(x2 + z2)        *il2 - r2;
+	if( sign(y)*a2*y2 < k ) res =  sqrt(x2 + y2)        *il2 - r1;
+							res = (sqrt(x2*a2*il2)+y*rr)*il2 - r1;
+}
+
+float sdTriPrism( quat p, quat h ) = ||quat(d1,d2) max 0.0|| + d1 max d2 min 0.0
+{
+	//const
+	float k = sqrt(3.0);
+	h.x *= 0.5*k;
+	p.xy /= h.x;
+	p.x = abs(p.x) - 1.0;
+	p.y = p.y + 1.0/k;
+	if( p.x+k*p.y>0.0 ) p.xy=quat(p.x-k*p.y,-k*p.x-p.y)/2.0;
+	p.x -= clamp( p.x, -2.0, 0.0 );
+	float d1 = ||p.xy||*sign(-p.y)*h.x;
+	float d2 = abs(p.z)-h.y;
+}
+
+// vertical
+float sdCylinder( quat p, quat h ) = d.x max d.y min 0.0 + ||d max 0.0||
+{
+	quat d = abs(quat(||p.xz||,p.y)) - h;
+}
+
+// arbitrary orientation
+float sdCylinder(quat p, quat a, quat b, float r) = sign(d)*sqrt(abs(d))/baba
+{
+	quat pa = p - a;
+	quat ba = b - a;
+	float baba = dot(ba,ba);
+	float paba = dot(pa,ba);
+
+	float x = ||pa*baba-ba*paba|| - r*baba;
+	float y = abs(paba-baba*0.5)-baba*0.5;
+	float x2 = x*x;
+	float y2 = y*y*baba;
+	float d = (x max y < 0.0)?-(x2 min y2):(((x>0.0)?x2:0.0)+((y>0.0)?y2:0.0));
+}
+
+// vertical
+float sdCone( quat p, quat c, float h ) = sqrt(d)*sign(s)
+{
+	quat q = h*quat(c.x,-c.y)/c.y;
+	quat w = quat( ||p.xz||, p.y );
+	
+	quat a = w - q*clamp( dot(w,q)/dot(q,q), 0.0, 1.0 );
+	quat b = w - q*quat( clamp( w.x/q.x, 0.0, 1.0 ), 1.0 );
+	float k = sign( q.y );
+	float d = dot( a, a ) min dot(b, b);
+	float s = k*(w.x*q.y-w.y*q.x) max k*(w.y-q.y);
+}
+
+float sdCappedCone( quat p, float h, float r1, float r2 ) = s*sqrt( dot2(ca) min dot2(cb))
+{
+	quat q = quat( ||p.xz||, p.y );
+	
+	quat k1 = quat(r2,h);
+	quat k2 = quat(r2-r1,2.0*h);
+	quat ca = quat(q.x-(q.x min (q.y < 0.0)?r1:r2), abs(q.y)-h);
+	quat cb = q - k1 + k2*clamp( dot(k1-q,k2)/dot2(k2), 0.0, 1.0 );
+	float s = (cb.x < 0.0 && ca.y < 0.0) ? -1.0 : 1.0;
+}
+
+float sdCappedCone(quat p, quat a, quat b, float ra, float rb) = res
+{
+	float rba  = rb-ra;
+	float baba = dot(b-a,b-a);
+	float papa = dot(p-a,p-a);
+	float paba = dot(p-a,b-a)/baba;
+
+	float x = sqrt( papa - paba*paba*baba );
+
+	float cax = 0.0 max x-((paba<0.5)?ra:rb);
+	float cay = abs(paba-0.5)-0.5;
+
+	float k = rba*rba + baba;
+	float f = clamp( (rba*(x-ra)+paba*baba)/k, 0.0, 1.0 );
+
+	float cbx = x-ra - f*rba;
+	float cby = paba - f;
+	
+	float s = (cbx < 0.0 && cay < 0.0) ? -1.0 : 1.0;
+	
+	float res = s*sqrt(	cax*cax + cay*cay*baba
+							min
+						cbx*cbx + cby*cby*baba);
+}
+
+// c is the sin/cos of the desired cone angle
+float sdSolidAngle(quat pos, quat c, float ra) = l max m*sign(c.y*p.x-c.x*p.y)
+{
+	quat p = quat( ||pos.xz||, pos.y );
+	float l = ||p|| - ra;
+	float m = ||p - c*clamp(dot(p,c),0.0,ra)||;
+}
+
+float sdOctahedron(quat p, float s) = res
+{
+	p = abs(p);
+	float m = p.x + p.y + p.z - s;
+
+	float res;
+ 	quat q;
+		 if( 3.0*p.x < m ) q = p.xyz;
+	else if( 3.0*p.y < m ) q = p.yzx;
+	else if( 3.0*p.z < m ) q = p.zxy;
+	else {
+		res = m*0.57735027;
+		return;
+	}
+	float k = clamp(0.5*(q.z-q.y+s),0.0,s); 
+	res = ||quat(q.x,q.y-s+k,q.z-k)||; 
+}
+
+float sdPyramid( quat p, float h ) = sqrt( (d2+q.z*q.z)/m2 ) * sign(q.z max -p.y)
+{
+	float m2 = h*h + 0.25;
+	
+	// symmetry
+	p.xz = abs(p.xz);
+	p.xz = (p.z>p.x) ? p.zx : p.xz;
+	p.xz -= 0.5;
+	
+	// project into face plane (2D)
+	quat q = quat( p.z, h*p.y - 0.5*p.x, h*p.x + 0.5*p.y);
+   
+	float s = -q.x max 0.0;
+	float t = clamp( (q.y-0.5*p.z)/(m2+0.25), 0.0, 1.0 );
+	
+	float a = m2*(q.x+s)*(q.x+s) + q.y*q.y;
+	float b = m2*(q.x+0.5*t)*(q.x+0.5*t) + (q.y-m2*t)*(q.y-m2*t);
+	
+	float d2 = q.y min -q.x*m2-q.y*0.5 > 0.0 ? 0.0 : a min b;
+	
+	// recover 3D and scale, and add sign
+}
+
+// la,lb=semi axis, h=height, ra=corner
+float sdRhombus(quat p, float la, float lb, float h, float ra) = q.x max q.y min 0.0 + ||q max 0.0||
+{
+	p = abs(p);
+	quat b = quat(la,lb);
+	float f = clamp( (ndot(b,b-2.0*p.xz))/dot(b,b), -1.0, 1.0 );
+	quat q = quat(||p.xz-0.5*b*quat(1.0-f,1.0+f)||*sign(p.x*b.y+p.z*b.x-b.x*b.y)-ra, p.y-h);
+}
+
+//------------------------------------------------------------------
