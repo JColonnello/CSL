@@ -16,3 +16,11 @@ float dot2( quat v ) = dot(v,v)
 float ndot( quat a, quat b ) = a.x*b.x - a.y*b.y
 
 float sdPlane( quat p ) = p.y
+
+float sdSphere( quat p, float s ) = ||p|| - s
+
+float sdBox( quat p, quat b ) = r
+{
+    quat d = abs(p) - b;
+	float r = d.x max d.y max d.z min 0.0 + ||d max 0.0||;
+}

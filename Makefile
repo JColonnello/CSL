@@ -7,11 +7,10 @@ SOURCES := $(shell find $(SOURCE_DIR)/ -type f -name "*.c")
 OBJS := $(SOURCES:%.c=$(BUILD_DIR)/%.o)
 DEP_FLAGS := -MMD -MP
 CFLAGS += -g -I $(GENERATED_DIR) $(DEP_FLAGS)
-OBJS_GRAMMAR := $(BUILD_DIR)/$(GENERATED_DIR)/grammar.tab.o $(BUILD_DIR)/$(GENERATED_DIR)/tokens.o
+OBJS_GRAMMAR := $(BUILD_DIR)/$(GENERATED_DIR)/grammar.tab.o $(BUILD_DIR)/$(GENERATED_DIR)/grammar.o
 ifeq ($(DEBUG),1)
-BISON_DEBUG := --debug --verbose
+BISON_DEBUG := --debug -r states,solved
 endif
-
 
 all: $(BUILD_DIR)/$(TARGET)
 
@@ -20,26 +19,22 @@ clean:
 
 rebuild: clean all
 
-$(GENERATED_DIR)/grammar.tab.c: $(BUILD_DIR)/$(GENERATED_DIR)/.grammar
-$(GENERATED_DIR)/grammar.tab.h: $(BUILD_DIR)/$(GENERATED_DIR)/.grammar
-
-$(BUILD_DIR)/$(GENERATED_DIR)/.grammar: grammar.y
+$(GENERATED_DIR)/%.tab.c $(GENERATED_DIR)/%.tab.h: %.y
 	$(MKDIR_P) $(GENERATED_DIR)
 	$(MKDIR_P) $(BUILD_DIR)/$(GENERATED_DIR)
-	bison -d $(BISON_DEBUG) -b generated/grammar $<
-	touch $@
+	bison -d $(BISON_DEBUG) -b generated/$* $<
 
-$(GENERATED_DIR)/tokens.c: tokens.l
+$(GENERATED_DIR)/%.c: %.l $(GENERATED_DIR)/%.tab.h
 	$(MKDIR_P) $(dir $@)
 	flex -o $@ $<
-
-$(BUILD_DIR)/$(TARGET): $(OBJS_GRAMMAR) $(OBJS)
-	$(MKDIR_P) $(dir $@)
-	$(CC) $(CFLAGS) -o $@ $^
 
 $(BUILD_DIR)/%.o: %.c
 	$(MKDIR_P) $(dir $@)
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/$(TARGET): $(OBJS_GRAMMAR) $(OBJS)
+	$(MKDIR_P) $(dir $@)
+	$(CC) $(CFLAGS) -o $@ $^
 
 -include $(OBJECTS:%.o=%.d)
 

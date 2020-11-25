@@ -4,6 +4,7 @@
 void yyerror (char const *s);
 int yylex_destroy();
 int yylex();
+extern int yylineno;
 
 int yywrap()
 {
@@ -12,22 +13,29 @@ int yywrap()
 
 void yyerror (char const *s)
 {
-	fprintf (stderr, "%s\n", s);
+	fprintf (stderr, "%s at line %d\n", s, yylineno);
 }
 
 int yydebug=1;
 %}
 %define parse.error verbose
+%locations
 
 %union {
     char *str;
+	float num;
 }
 %type <str> IDENT
 
 %token FLOAT QUAT VOID
 %token RETURN
 %token IDENT
-%token DOT PROD DIV MINUS PLUS
+%token DOT PROD DIV MINUS PLUS DOUBLE_BARS MAX MIN
+%token <num> FLOAT_CONST
+
+%left MAX MIN
+%left PLUS MINUS
+%left PROD DIV
 
 %%
 
@@ -59,15 +67,28 @@ statement:	expression ';'
 			| ';'
 			| block
 			| RETURN expression ';'
+			| declaration ';'
+
+declaration:	TYPE IDENT
+				| TYPE IDENT '=' expression
+
 expression:	member
 			| function_call
-			| expression binary_op expression
-member: IDENT
-		| member DOT IDENT
+			| binary_operation
+			| const
+const:	FLOAT_CONST
+member: member DOT IDENT
+		| IDENT
 
-binary_op: PLUS | MINUS | PROD | DIV
+binary_operation:	expression	PLUS	expression
+				|	expression	MINUS	expression
+				|	expression	PROD	expression
+				|	expression	DIV		expression
+				|	expression	MAX		expression
+				|	expression	MIN		expression
 
 function_call:	IDENT params
+				| DOUBLE_BARS expression DOUBLE_BARS
 params:	'(' params_c expression ')'
 		| '(' ')'
 
