@@ -49,6 +49,7 @@ int yydebug=1;
 %left PROD DIV
 %left FLOAT QUAT
 %nonassoc LENGTH
+%left DOT
 
 %%
 
@@ -76,8 +77,7 @@ block:	'{' statements '}'
 
 statements:	statements statement
 			| /* empty */
-statement:	expression ';'
-			| ';'
+statement:	 ';'
 			| block
 			| RETURN ';'
 			| declaration ';'
@@ -93,19 +93,21 @@ assignment:	member ASSIGN expression
 declaration:	TYPE IDENT
 				| TYPE IDENT ASSIGN expression
 
-expression:	'(' expression ')'
-			| member
-			| function_call
-			| unary_operation
+expression:	unary_operation
 			| binary_operation
 			| ternary_operation
-			| const
 const:	FLOAT_CONST
 member: member DOT IDENT
 		| IDENT
 
-unary_operation:	MINUS expression
-				|	PLUS expression
+unary_operation:	MINUS unary_operation
+				|	PLUS unary_operation
+				|	'(' expression ')'
+				|	function_call
+				|	unary_operation DOT member
+				|	const
+				|	IDENT
+
 
 binary_operation:	expression	PLUS	expression
 				|	expression	MINUS	expression

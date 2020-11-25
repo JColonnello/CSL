@@ -44,7 +44,7 @@ else				return ELSE;
 &&					return AND;
 
 {alpha}({alpha}|{digit})*		{ yylval.str = strdup(yytext); return IDENT; }
-{digit}+\.{digit}+				{ yylval.num = atof(yytext); return FLOAT_CONST; }
+{digit}+\.?{digit}*([eE][-+]?{digit}+)?			{ yylval.num = atof(yytext); return FLOAT_CONST; }
 
 .					return yytext[0];
 
