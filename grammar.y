@@ -27,12 +27,12 @@ int yydebug=1;
 }
 %type <str> IDENT
 
-%token FLOAT QUAT VOID
+%token FLOAT VEC MAT VOID
 %token RETURN
 %token IDENT
 %token DOT PROD DIV MINUS PLUS DOUBLE_BARS MAX MIN
 %token ASSIGN PROD_ASSIGN DIV_ASSIGN PLUS_ASSIGN MINUS_ASSIGN
-%token IF ELSE LT GT LE GE AND
+%token FOR IF ELSE BREAK LT GT LE GE AND
 %token <num> FLOAT_CONST
 
 %nonassoc IF
@@ -47,7 +47,7 @@ int yydebug=1;
 %left MAX MIN
 %left PLUS MINUS
 %left PROD DIV
-%left FLOAT QUAT
+%nonassoc FLOAT VEC MAT
 %nonassoc LENGTH
 %left DOT
 
@@ -58,16 +58,16 @@ S: S translation_unit
 
 translation_unit: function_declaration
 
-function_declaration:	TYPE IDENT params_decl ASSIGN ret_declaration
-						| TYPE IDENT params_decl ASSIGN ret_declaration block
-						| VOID IDENT params_decl block
+function_declaration:	TYPE IDENT '(' params_decl ')' ASSIGN ret_declaration
+						| TYPE IDENT '(' params_decl ')' ASSIGN ret_declaration block
+						| VOID IDENT '(' params_decl ')' block
 
-TYPE: FLOAT | QUAT
+TYPE: FLOAT | VEC | MAT
 
-params_decl:	 '(' params_decl_c param_decl ')'
-				| "()"
+params_decl:	params_decl_c param_decl
+				| /* empty */
 params_decl_c:	params_decl_c param_decl ','
-			| /* empty */
+				| /* empty */
 param_decl: TYPE IDENT
 
 ret_declaration:	expression
@@ -75,15 +75,28 @@ ret_declaration:	expression
 
 block:	'{' statements '}'
 
+simple_statement:	';'
+					| RETURN ';'
+					| declaration ';'
+					| assignment ';'
 statements:	statements statement
 			| /* empty */
-statement:	 ';'
+statement:	simple_statement
 			| block
-			| RETURN ';'
-			| declaration ';'
-			| assignment ';'
 			| IF '(' expression ')' statement %prec IF
 			| IF '(' expression ')' statement ELSE statement
+			| FOR '(' declaration ';' expression ';' assignment ')' statement_break
+
+statement_break:	simple_statement
+					| block_break
+					| IF '(' expression ')' statement_break %prec IF
+					| IF '(' expression ')' statement_break ELSE statement_break
+					| FOR '(' declaration ';' expression ';' assignment ')' statement_break
+					| BREAK ';'
+block_break:	'{' statements_break '}'
+statements_break:	statements_break statement_break
+					| /* empty */
+
 assignment:	member ASSIGN expression
 			| member PROD_ASSIGN expression
 			| member DIV_ASSIGN expression
@@ -124,11 +137,11 @@ binary_operation:	expression	PLUS	expression
 
 ternary_operation: expression '?' expression ':' expression
 
-function_call:	IDENT params
-				| TYPE params
+function_call:	IDENT '(' params ')'
+				| TYPE '(' params ')'
 				| DOUBLE_BARS expression DOUBLE_BARS %prec LENGTH
-params:	'(' params_c expression ')'
-		| '(' ')'
+params:	params_c expression
+		| /* empty */
 
 params_c:	params_c expression ','
 			| /* empty */

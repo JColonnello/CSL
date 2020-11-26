@@ -18,7 +18,8 @@ alnum ({alpha}|{digit})
 <COMMENT>[^*\n]+
 
 float				return FLOAT;
-quat				return QUAT;
+vec					return VEC;
+mat					return MAT;
 return				return RETURN;
 void				return VOID;
 
@@ -37,6 +38,8 @@ min					return MIN;
 \<=					return LE;
 if					return IF;
 else				return ELSE;
+for					return FOR;
+break				return BREAK;
 \*=					return PROD_ASSIGN;
 \/=					return DIV_ASSIGN;
 \+=					return PLUS_ASSIGN;

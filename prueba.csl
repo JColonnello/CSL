@@ -1,6 +1,6 @@
 // The MIT License
 // Copyright © 2013 Inigo Quilez
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS THE SOFTWARE.
 
 // A list of useful distance function to simple primitives. All
 // these functions (except for ellipsoid) return an exact
@@ -12,114 +12,114 @@
 //
 // https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
 
-float dot2( quat v ) = dot(v,v)
-float ndot( quat a, quat b ) = a.x*b.x - a.y*b.y
+float dot2( vec v ) = dot(v,v)
+float ndot( vec a, vec b ) = a.x*b.x - a.y*b.y
 
-float sdPlane( quat p ) = p.y
+float sdPlane( vec p ) = p.y
 
-float sdSphere( quat p, float s ) = ||p|| - s
+float sdSphere( vec p, float s ) = ||p|| - s
 
-float sdBox( quat p, quat b ) = r
+float sdBox( vec p, vec b ) = r
 {
-	quat d = abs(p) - b;
+	vec d = abs(p) - b;
 	float r = d.x max d.y max d.z min 0.0 + ||d max 0.0||;
 }
 
-float sdBoundingBox( quat p, quat b, float e ) = r
+float sdBoundingBox( vec p, vec b, float e ) = r
 {
 	p = abs(p)-b;
-  	quat q = abs(p+e)-e;
+  	vec q = abs(p+e)-e;
 
 	float r = 
-		(||quat(p.x,q.y,q.z) max 0.0|| + (p.x max q.y max q.z min 0.0)) 
+		(||vec(p.x,q.y,q.z) max 0.0|| + (p.x max q.y max q.z min 0.0)) 
 			min
-		(||quat(q.x,p.y,q.z) max 0.0|| + (q.x max p.y max q.z min 0.0)) 
+		(||vec(q.x,p.y,q.z) max 0.0|| + (q.x max p.y max q.z min 0.0)) 
 			min
-		(||quat(q.x,q.y,p.z) max 0.0|| + (q.x max q.y max p.z min 0.0));
+		(||vec(q.x,q.y,p.z) max 0.0|| + (q.x max q.y max p.z min 0.0));
 }
 
-float sdEllipsoid( quat p, quat r ) = k0*(k0-1.0)/k1 // approximated
+float sdEllipsoid( vec p, vec r ) = k0*(k0-1.0)/k1 // approximated
 {
 	float k0 = ||p/r||;
 	float k1 = ||p/(r*r)||;
 }
 
-float sdTorus( quat p, quat t ) = r
+float sdTorus( vec p, vec t ) = r
 {
-	float r = || quat(||p.xz|| - t.x,p.y) || - t.y;
+	float r = || vec(||p.xz|| - t.x,p.y) || - t.y;
 }
 
-float sdCappedTorus(quat p, quat sc, float ra, float rb) = r
+float sdCappedTorus(vec p, vec sc, float ra, float rb) = r
 {
 	p.x = abs(p.x);
 	float k = (sc.y*p.x>sc.x*p.y) ? dot(p.xy,sc) : ||p.xy||;
 	float r = sqrt( dot(p,p) + ra*ra - 2.0*ra*k ) - rb;
 }
 
-float sdHexPrism( quat p, quat h ) = r
+float sdHexPrism( vec p, vec h ) = r
 {
-	quat q = abs(p);
+	vec q = abs(p);
 
 	//const
-	quat k = quat(-0.8660254, 0.5, 0.57735);
+	vec k = vec(-0.8660254, 0.5, 0.57735);
 	p = abs(p);
 	//p.xy -= 2.0*(dot(k.xy, p.xy) min 0.0)*k.xy;
 	p.xy = p.xy - 2.0*(dot(k.xy, p.xy) min 0.0)*k.xy;
-	quat d = quat(
-	   ||p.xy - quat(clamp(p.x, -k.z*h.x, k.z*h.x), h.x)||*sign(p.y - h.x),
+	vec d = vec(
+	   ||p.xy - vec(clamp(p.x, -k.z*h.x, k.z*h.x), h.x)||*sign(p.y - h.x),
 	   p.z-h.y );
 	float r = d.x max d.y min 0.0 + ||d max 0.0||;
 }
 
-float sdOctogonPrism( quat p, float r, float h ) = d.x max d.y min 0.0 + ||d max 0.0||
+float sdOctogonPrism( vec p, float r, float h ) = d.x max d.y min 0.0 + ||d max 0.0||
 {
   //const
-	quat k = quat(-0.9238795325,   // sqrt(2+sqrt(2))/2 
+	vec k = vec(-0.9238795325,   // sqrt(2+sqrt(2))/2 
 						0.3826834323,   // sqrt(2-sqrt(2))/2
 						0.4142135623 ); // sqrt(2)-1 
 	// reflections
 	p = abs(p);
 	//TODO: -=
-	p.xy = p.xy - 2.0*(dot(quat( k.x,k.y),p.xy) min 0.0)*quat( k.x,k.y);
-	p.xy = p.xy - 2.0*(dot(quat(-k.x,k.y),p.xy) min 0.0)*quat(-k.x,k.y);
+	p.xy = p.xy - 2.0*(dot(vec( k.x,k.y),p.xy) min 0.0)*vec( k.x,k.y);
+	p.xy = p.xy - 2.0*(dot(vec(-k.x,k.y),p.xy) min 0.0)*vec(-k.x,k.y);
 	// polygon side
-	p.xy = p.xy - quat(clamp(p.x, -k.z*r, k.z*r), r);
-	quat d = quat( ||p.xy||*sign(p.y), p.z-h );
+	p.xy = p.xy - vec(clamp(p.x, -k.z*r, k.z*r), r);
+	vec d = vec( ||p.xy||*sign(p.y), p.z-h );
 }
 
-float sdCapsule( quat p, quat a, quat b, float r ) = || pa - ba*h || - r
+float sdCapsule( vec p, vec a, vec b, float r ) = || pa - ba*h || - r
 {
-	quat pa = p-a;
-	quat ba = b-a;
+	vec pa = p-a;
+	vec ba = b-a;
 	float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
 }
 
-float sdRoundCone( quat p, float r1, float r2, float h ) = res
+float sdRoundCone( vec p, float r1, float r2, float h ) = res
 {
-	quat q = quat( ||p.xz||, p.y );
+	vec q = vec( ||p.xz||, p.y );
 	
 	float b = (r1-r2)/h;
 	float a = sqrt(1.0-b*b);
-	float k = dot(q,quat(-b,a));
+	float k = dot(q,vec(-b,a));
 	
 	float res;
 	if( k < 0.0 ) res = ||q|| - r1;
-	if( k > a*h ) res = ||q-quat(0.0,h)|| - r2;
+	if( k > a*h ) res = ||q-vec(0.0,h)|| - r2;
 		
-	res = dot(q, quat(a,b) ) - r1;
+	res = dot(q, vec(a,b) ) - r1;
 }
 
-float sdRoundCone(quat p, quat a, quat b, float r1, float r2) = res
+float sdRoundCone(vec p, vec a, vec b, float r1, float r2) = res
 {
 	// sampling independent computations (only depend on shape)
-	quat  ba = b - a;
+	vec  ba = b - a;
 	float l2 = dot(ba,ba);
 	float rr = r1 - r2;
 	float a2 = l2 - rr*rr;
 	float il2 = 1.0/l2;
 	
 	// sampling dependant computations
-	quat pa = p - a;
+	vec pa = p - a;
 	float y = dot(pa,ba);
 	float z = y - l2;
 	float x2 = dot2( pa*l2 - ba*y );
@@ -134,7 +134,7 @@ float sdRoundCone(quat p, quat a, quat b, float r1, float r2) = res
 							res = (sqrt(x2*a2*il2)+y*rr)*il2 - r1;
 }
 
-float sdTriPrism( quat p, quat h ) = ||quat(d1,d2) max 0.0|| + d1 max d2 min 0.0
+float sdTriPrism( vec p, vec h ) = ||vec(d1,d2) max 0.0|| + d1 max d2 min 0.0
 {
 	//const
 	float k = sqrt(3.0);
@@ -142,23 +142,23 @@ float sdTriPrism( quat p, quat h ) = ||quat(d1,d2) max 0.0|| + d1 max d2 min 0.0
 	p.xy /= h.x;
 	p.x = abs(p.x) - 1.0;
 	p.y = p.y + 1.0/k;
-	if( p.x+k*p.y>0.0 ) p.xy=quat(p.x-k*p.y,-k*p.x-p.y)/2.0;
+	if( p.x+k*p.y>0.0 ) p.xy=vec(p.x-k*p.y,-k*p.x-p.y)/2.0;
 	p.x -= clamp( p.x, -2.0, 0.0 );
 	float d1 = ||p.xy||*sign(-p.y)*h.x;
 	float d2 = abs(p.z)-h.y;
 }
 
 // vertical
-float sdCylinder( quat p, quat h ) = d.x max d.y min 0.0 + ||d max 0.0||
+float sdCylinder( vec p, vec h ) = d.x max d.y min 0.0 + ||d max 0.0||
 {
-	quat d = abs(quat(||p.xz||,p.y)) - h;
+	vec d = abs(vec(||p.xz||,p.y)) - h;
 }
 
 // arbitrary orientation
-float sdCylinder(quat p, quat a, quat b, float r) = sign(d)*sqrt(abs(d))/baba
+float sdCylinder(vec p, vec a, vec b, float r) = sign(d)*sqrt(abs(d))/baba
 {
-	quat pa = p - a;
-	quat ba = b - a;
+	vec pa = p - a;
+	vec ba = b - a;
 	float baba = dot(ba,ba);
 	float paba = dot(pa,ba);
 
@@ -170,30 +170,30 @@ float sdCylinder(quat p, quat a, quat b, float r) = sign(d)*sqrt(abs(d))/baba
 }
 
 // vertical
-float sdCone( quat p, quat c, float h ) = sqrt(d)*sign(s)
+float sdCone( vec p, vec c, float h ) = sqrt(d)*sign(s)
 {
-	quat q = h*quat(c.x,-c.y)/c.y;
-	quat w = quat( ||p.xz||, p.y );
+	vec q = h*vec(c.x,-c.y)/c.y;
+	vec w = vec( ||p.xz||, p.y );
 	
-	quat a = w - q*clamp( dot(w,q)/dot(q,q), 0.0, 1.0 );
-	quat b = w - q*quat( clamp( w.x/q.x, 0.0, 1.0 ), 1.0 );
+	vec a = w - q*clamp( dot(w,q)/dot(q,q), 0.0, 1.0 );
+	vec b = w - q*vec( clamp( w.x/q.x, 0.0, 1.0 ), 1.0 );
 	float k = sign( q.y );
 	float d = dot( a, a ) min dot(b, b);
 	float s = k*(w.x*q.y-w.y*q.x) max k*(w.y-q.y);
 }
 
-float sdCappedCone( quat p, float h, float r1, float r2 ) = s*sqrt( dot2(ca) min dot2(cb))
+float sdCappedCone( vec p, float h, float r1, float r2 ) = s*sqrt( dot2(ca) min dot2(cb))
 {
-	quat q = quat( ||p.xz||, p.y );
+	vec q = vec( ||p.xz||, p.y );
 	
-	quat k1 = quat(r2,h);
-	quat k2 = quat(r2-r1,2.0*h);
-	quat ca = quat(q.x-(q.x min (q.y < 0.0)?r1:r2), abs(q.y)-h);
-	quat cb = q - k1 + k2*clamp( dot(k1-q,k2)/dot2(k2), 0.0, 1.0 );
+	vec k1 = vec(r2,h);
+	vec k2 = vec(r2-r1,2.0*h);
+	vec ca = vec(q.x-(q.x min (q.y < 0.0)?r1:r2), abs(q.y)-h);
+	vec cb = q - k1 + k2*clamp( dot(k1-q,k2)/dot2(k2), 0.0, 1.0 );
 	float s = (cb.x < 0.0 && ca.y < 0.0) ? -1.0 : 1.0;
 }
 
-float sdCappedCone(quat p, quat a, quat b, float ra, float rb) = res
+float sdCappedCone(vec p, vec a, vec b, float ra, float rb) = res
 {
 	float rba  = rb-ra;
 	float baba = dot(b-a,b-a);
@@ -219,20 +219,20 @@ float sdCappedCone(quat p, quat a, quat b, float ra, float rb) = res
 }
 
 // c is the sin/cos of the desired cone angle
-float sdSolidAngle(quat pos, quat c, float ra) = l max m*sign(c.y*p.x-c.x*p.y)
+float sdSolidAngle(vec pos, vec c, float ra) = l max m*sign(c.y*p.x-c.x*p.y)
 {
-	quat p = quat( ||pos.xz||, pos.y );
+	vec p = vec( ||pos.xz||, pos.y );
 	float l = ||p|| - ra;
 	float m = ||p - c*clamp(dot(p,c),0.0,ra)||;
 }
 
-float sdOctahedron(quat p, float s) = res
+float sdOctahedron(vec p, float s) = res
 {
 	p = abs(p);
 	float m = p.x + p.y + p.z - s;
 
 	float res;
- 	quat q;
+ 	vec q;
 		 if( 3.0*p.x < m ) q = p.xyz;
 	else if( 3.0*p.y < m ) q = p.yzx;
 	else if( 3.0*p.z < m ) q = p.zxy;
@@ -241,10 +241,10 @@ float sdOctahedron(quat p, float s) = res
 		return;
 	}
 	float k = clamp(0.5*(q.z-q.y+s),0.0,s); 
-	res = ||quat(q.x,q.y-s+k,q.z-k)||; 
+	res = ||vec(q.x,q.y-s+k,q.z-k)||; 
 }
 
-float sdPyramid( quat p, float h ) = sqrt( (d2+q.z*q.z)/m2 ) * sign(q.z max -p.y)
+float sdPyramid( vec p, float h ) = sqrt( (d2+q.z*q.z)/m2 ) * sign(q.z max -p.y)
 {
 	float m2 = h*h + 0.25;
 	
@@ -254,7 +254,7 @@ float sdPyramid( quat p, float h ) = sqrt( (d2+q.z*q.z)/m2 ) * sign(q.z max -p.y
 	p.xz -= 0.5;
 	
 	// project into face plane (2D)
-	quat q = quat( p.z, h*p.y - 0.5*p.x, h*p.x + 0.5*p.y);
+	vec q = vec( p.z, h*p.y - 0.5*p.x, h*p.x + 0.5*p.y);
    
 	float s = -q.x max 0.0;
 	float t = clamp( (q.y-0.5*p.z)/(m2+0.25), 0.0, 1.0 );
@@ -268,12 +268,311 @@ float sdPyramid( quat p, float h ) = sqrt( (d2+q.z*q.z)/m2 ) * sign(q.z max -p.y
 }
 
 // la,lb=semi axis, h=height, ra=corner
-float sdRhombus(quat p, float la, float lb, float h, float ra) = q.x max q.y min 0.0 + ||q max 0.0||
+float sdRhombus(vec p, float la, float lb, float h, float ra) = q.x max q.y min 0.0 + ||q max 0.0||
 {
 	p = abs(p);
-	quat b = quat(la,lb);
+	vec b = vec(la,lb);
 	float f = clamp( (ndot(b,b-2.0*p.xz))/dot(b,b), -1.0, 1.0 );
-	quat q = quat(||p.xz-0.5*b*quat(1.0-f,1.0+f)||*sign(p.x*b.y+p.z*b.x-b.x*b.y)-ra, p.y-h);
+	vec q = vec(||p.xz-0.5*b*vec(1.0-f,1.0+f)||*sign(p.x*b.y+p.z*b.x-b.x*b.y)-ra, p.y-h);
 }
 
 //------------------------------------------------------------------
+
+vec opU( vec d1, vec d2 ) = (d1.x<d2.x) ? d1 : d2
+
+//------------------------------------------------------------------
+
+//#define ZERO (iFrame min 0)
+
+//------------------------------------------------------------------
+
+vec map( vec pos ) = res
+{
+    vec res = vec( 1e10, 0.0 );
+
+    {
+      res = opU( res, vec( sdSphere(    pos-vec(-2.0,0.25, 0.0), 0.25 ), 26.9 ) );
+    }
+
+    // bounding box
+    if( sdBox( pos-vec(0.0,0.3,-1.0),vec(0.35,0.3,2.5) )<res.x )
+    {
+    // more primitives
+    res = opU( res, vec( sdBoundingBox( pos-vec( 0.0,0.25, 0.0), vec(0.3,0.25,0.2), 0.025 ), 16.9 ) );
+	res = opU( res, vec( sdTorus(      (pos-vec( 0.0,0.30, 1.0)).xzy, vec(0.25,0.05) ), 25.0 ) );
+	res = opU( res, vec( sdCone(        pos-vec( 0.0,0.45,-1.0), vec(0.6,0.8),0.45 ), 55.0 ) );
+    res = opU( res, vec( sdCappedCone(  pos-vec( 0.0,0.25,-2.0), 0.25, 0.25, 0.1 ), 13.67 ) );
+    res = opU( res, vec( sdSolidAngle(  pos-vec( 0.0,0.00,-3.0), vec(3,4)/5.0, 0.4 ), 49.13 ) );
+    }
+
+    // bounding box
+    if( sdBox( pos-vec(1.0,0.3,-1.0),vec(0.35,0.3,2.5) )<res.x )
+    {
+    // more primitives
+	res = opU( res, vec( sdCappedTorus((pos-vec( 1.0,0.30, 1.0))*vec(1,-1,1), vec(0.866025,-0.5), 0.25, 0.05), 8.5) );
+    res = opU( res, vec( sdBox(         pos-vec( 1.0,0.25, 0.0), vec(0.3,0.25,0.1) ), 3.0 ) );
+    res = opU( res, vec( sdCapsule(     pos-vec( 1.0,0.00,-1.0),vec(-0.1,0.1,-0.1), vec(0.2,0.4,0.2), 0.1  ), 31.9 ) );
+	res = opU( res, vec( sdCylinder(    pos-vec( 1.0,0.25,-2.0), vec(0.15,0.25) ), 8.0 ) );
+    res = opU( res, vec( sdHexPrism(    pos-vec( 1.0,0.2,-3.0), vec(0.2,0.05) ), 18.4 ) );
+    }
+
+    // bounding box
+    if( sdBox( pos-vec(-1.0,0.35,-1.0),vec(0.35,0.35,2.5))<res.x )
+    {
+    // more primitives
+	res = opU( res, vec( sdPyramid(    pos-vec(-1.0,-0.6,-3.0), 1.0 ), 13.56 ) );
+	res = opU( res, vec( sdOctahedron( pos-vec(-1.0,0.15,-2.0), 0.35 ), 23.56 ) );
+    res = opU( res, vec( sdTriPrism(   pos-vec(-1.0,0.15,-1.0), vec(0.3,0.05) ),43.5 ) );
+    res = opU( res, vec( sdEllipsoid(  pos-vec(-1.0,0.25, 0.0), vec(0.2, 0.25, 0.05) ), 43.17 ) );
+	res = opU( res, vec( sdRhombus(   (pos-vec(-1.0,0.34, 1.0)).xzy, 0.15, 0.25, 0.04, 0.08 ),17.0 ) );
+    }
+
+    // bounding box
+    if( sdBox( pos-vec(2.0,0.3,-1.0),vec(0.35,0.3,2.5) )<res.x )
+    {
+    // more primitives
+    res = opU( res, vec( sdOctogonPrism(pos-vec( 2.0,0.2,-3.0), 0.2, 0.05), 51.8 ) );
+    res = opU( res, vec( sdCylinder(    pos-vec( 2.0,0.15,-2.0), vec(0.1,-0.1,0.0), vec(-0.2,0.35,0.1), 0.08), 31.2 ) );
+	res = opU( res, vec( sdCappedCone(  pos-vec( 2.0,0.10,-1.0), vec(0.1,0.0,0.0), vec(-0.2,0.40,0.1), 0.15, 0.05), 46.1 ) );
+    res = opU( res, vec( sdRoundCone(   pos-vec( 2.0,0.15, 0.0), vec(0.1,0.0,0.0), vec(-0.1,0.35,0.1), 0.15, 0.05), 51.7 ) );
+    res = opU( res, vec( sdRoundCone(   pos-vec( 2.0,0.20, 1.0), 0.2, 0.1, 0.3 ), 37.0 ) );
+    }
+}
+
+// http://iquilezles.org/www/articles/boxfunctions/boxfunctions.htm
+vec iBox( vec ro, vec rd, vec rad ) = vec( t1.x max t1.y max t1.z,
+	             								t2.x min t2.y min t2.z )
+{
+    vec m = 1.0/rd;
+    vec n = m*ro;
+    vec k = abs(m)*rad;
+    vec t1 = -n - k;
+    vec t2 = -n + k;
+}
+
+vec raycast( vec ro, vec rd ) = res
+{
+    vec res = vec(-1.0,-1.0);
+
+    float tmin = 1.0;
+    float tmax = 20.0;
+
+    // raytrace floor plane
+    float tp1 = (0.0-ro.y)/rd.y;
+    if( tp1>0.0 )
+    {
+        tmax = tmax min tp1 ;
+        res = vec( tp1, 1.0 );
+    }
+    //else return res;
+    
+    // raymarch primitives   
+    vec tb = iBox( ro-vec(0.0,0.4,-0.5), rd, vec(2.5,0.41,3.0) );
+    if( tb.x<tb.y && tb.y>0.0 && tb.x<tmax)
+    {
+        //return vec(tb.x,2.0);
+        tmin = tb.x max tmin;
+        tmax = tb.y min tmax;
+
+        float t = tmin;
+        for( float i=0; i<70 && t<tmax; i+=1 )
+        {
+            vec h = map( ro+rd*t );
+            if( abs(h.x)<(0.0001*t) )
+            { 
+                res = vec(t,h.y); 
+                break;
+            }
+            t += h.x;
+        }
+    }
+}
+
+// http://iquilezles.org/www/articles/rmshadows/rmshadows.htm
+float calcSoftshadow( vec ro, vec rd, float mint, float tmax ) = clamp( res, 0.0, 1.0 )
+{
+    // bounding volume
+    float tp = (0.8-ro.y)/rd.y; if( tp>0.0 ) tmax = tmax min tp;
+
+    float res = 1.0;
+    float t = mint;
+    for( float i=(iFrame min 0); i<24; i+=1 )
+    {
+		float h = map( ro + rd*t ).x;
+        float s = clamp(8.0*h/t,0.0,1.0);
+        res = res min s*s*(3.0-2.0*s);
+        t += clamp( h, 0.02, 0.2 );
+        if( res<0.004 || t>tmax ) break;
+    }
+}
+
+// http://iquilezles.org/www/articles/normalsSDF/normalsSDF.htm
+vec calcNormal( vec pos ) = n
+{
+	vec e = vec(1.0,-1.0)*0.5773*0.0005;
+    vec n = normalize( e.xyy*map( pos + e.xyy ).x + 
+					  e.yyx*map( pos + e.yyx ).x + 
+					  e.yxy*map( pos + e.yxy ).x + 
+					  e.xxx*map( pos + e.xxx ).x );
+}
+
+float calcAO( vec pos, vec nor ) = clamp( 1.0 - 3.0*occ, 0.0, 1.0 ) * (0.5+0.5*nor.y)
+{
+	float occ = 0.0;
+    float sca = 1.0;
+    for( float i=(iFrame min 0); i<5; i+=1 )
+    {
+        float h = 0.01 + 0.12*float(i)/4.0;
+        float d = map( pos + h*nor ).x;
+        occ += (h-d)*sca;
+        sca *= 0.95;
+        if( occ>0.35 ) break;
+    }
+}
+
+// http://iquilezles.org/www/articles/checkerfiltering/checkerfiltering.htm
+float checkersGradBox( vec p, vec dpdx, vec dpdy ) = 0.5 - 0.5*i.x*i.y
+{
+    // filter kernel
+    vec w = abs(dpdx)+abs(dpdy) + 0.001;
+    // analytical integral (box filter)
+    vec i = 2.0*(abs(fract((p-0.5*w)*0.5)-0.5)-abs(fract((p+0.5*w)*0.5)-0.5))/w;
+    // xor pattern
+}
+
+vec render( vec ro, vec rd, vec rdx, vec rdy ) = vec( clamp(col,0.0,1.0) )
+{ 
+    // background
+    vec col = vec(0.7, 0.7, 0.9) - (rd.y max 0.0)*0.3;
+    
+    // raycast scene
+    vec res = raycast(ro,rd);
+    float t = res.x;
+	float m = res.y;
+    if( m>-0.5 )
+    {
+        vec pos = ro + t*rd;
+        vec nor = (m<1.5) ? vec(0.0,1.0,0.0) : calcNormal( pos );
+        vec ref = reflect( rd, nor );
+        
+        // material        
+        col = 0.2 + 0.2*sin( m*2.0 + vec(0.0,1.0,2.0) );
+        float ks = 1.0;
+        
+        if( m<1.5 )
+        {
+            // project pixel footprint into the plane
+            vec dpdx = ro.y*(rd/rd.y-rdx/rdx.y);
+            vec dpdy = ro.y*(rd/rd.y-rdy/rdy.y);
+
+            float f = checkersGradBox( 3.0*pos.xz, 3.0*dpdx.xz, 3.0*dpdy.xz );
+            col = 0.15 + f*vec(0.05);
+            ks = 0.4;
+        }
+
+        // lighting
+        float occ = calcAO( pos, nor );
+        
+		vec lin = vec(0.0);
+
+        // sun
+        {
+            vec  lig = normalize( vec(-0.5, 0.4, -0.6) );
+            vec  hal = normalize( lig-rd );
+            float dif = clamp( dot( nor, lig ), 0.0, 1.0 );
+          //if( dif>0.0001 )
+        	      dif *= calcSoftshadow( pos, lig, 0.02, 2.5 );
+			float spe = pow( clamp( dot( nor, hal ), 0.0, 1.0 ),16.0);
+                  spe *= dif;
+                  spe *= 0.04+0.96*pow(clamp(1.0-dot(hal,lig),0.0,1.0),5.0);
+            lin += col*2.20*dif*vec(1.30,1.00,0.70);
+            lin +=     5.00*spe*vec(1.30,1.00,0.70)*ks;
+        }
+        // sky
+        {
+            float dif = sqrt(clamp( 0.5+0.5*nor.y, 0.0, 1.0 ));
+                  dif *= occ;
+            float spe = smoothstep( -0.2, 0.2, ref.y );
+                  spe *= dif;
+                  spe *= 0.04+0.96*pow(clamp(1.0+dot(nor,rd),0.0,1.0), 5.0 );
+          //if( spe>0.001 )
+                  spe *= calcSoftshadow( pos, ref, 0.02, 2.5 );
+            lin += col*0.60*dif*vec(0.40,0.60,1.15);
+            lin +=     2.00*spe*vec(0.40,0.60,1.30)*ks;
+        }
+        // back
+        {
+        	float dif = clamp( dot( nor, normalize(vec(0.5,0.0,0.6))), 0.0, 1.0 )*clamp( 1.0-pos.y,0.0,1.0);
+                  dif *= occ;
+        	lin += col*0.55*dif*vec(0.25,0.25,0.25);
+        }
+        // sss
+        {
+            float dif = pow(clamp(1.0+dot(nor,rd),0.0,1.0),2.0);
+                  dif *= occ;
+        	lin += col*0.25*dif*vec(1.00,1.00,1.00);
+        }
+        
+		col = lin;
+
+        col = mix( col, vec(0.7,0.7,0.9), 1.0-exp( -0.0001*t*t*t ) );
+    }
+}
+
+mat setCamera( vec ro, vec ta, float cr ) = mat( cu, cv, cw )
+{
+	vec cw = normalize(ta-ro);
+	vec cp = vec(sin(cr), cos(cr),0.0);
+	vec cu = normalize( cross(cw,cp) );
+	vec cv =          ( cross(cu,cw) );
+}
+
+void main()
+{
+    vec mo = iMouse.xy/iResolution.xy;
+	float time = 32.0 + iTime*1.5;
+
+    // camera	
+    vec ta = vec( 0.5, -0.5, -0.6 );
+    vec ro = ta + vec( 4.5*cos(0.1*time + 7.0*mo.x), 1.3 + 2.0*mo.y, 4.5*sin(0.1*time + 7.0*mo.x) );
+    // camera-to-world transformation
+    mat ca = setCamera( ro, ta, 0.0 );
+
+    vec tot = vec(0.0);
+//#if AA>1
+    for( float m=(iFrame min 0); m<AA; m+=1 )
+    for( float n=(iFrame min 0); n<AA; n+=1 )
+    {
+        // pixel coordinates
+        vec o = vec(float(m),float(n)) / float(AA) - 0.5;
+        vec p = (2.0*(gl_FragCoord+o)-iResolution.xy)/iResolution.y;
+//#else    
+//        vec p = (2.0*gl_FragCoord-iResolution.xy)/iResolution.y;
+//#endif
+
+        // ray direction
+        vec rd = ca * normalize( vec(p,2.5) );
+
+         // ray differentials
+        vec px = (2.0*(gl_FragCoord+vec(1.0,0.0))-iResolution.xy)/iResolution.y;
+        vec py = (2.0*(gl_FragCoord+vec(0.0,1.0))-iResolution.xy)/iResolution.y;
+        vec rdx = ca * normalize( vec(px,2.5) );
+        vec rdy = ca * normalize( vec(py,2.5) );
+        
+        // render	
+        vec col = render( ro, rd, rdx, rdy );
+
+        // gain
+        // col = col*3.0/(2.5+col);
+        
+		// gamma
+        col = pow( col, vec(0.4545) );
+
+        tot += col;
+//#if AA>1
+    }
+    tot /= float(AA*AA);
+//#endif
+    
+    gl_FragColor = vec( tot, 1.0 );
+}
