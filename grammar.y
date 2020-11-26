@@ -64,14 +64,14 @@ function_declaration:	TYPE IDENT '(' params_decl ')' ASSIGN ret_declaration
 
 TYPE: FLOAT | VEC | MAT
 
-params_decl:	params_decl_c param_decl
-				| /* empty */
-params_decl_c:	params_decl_c param_decl ','
+params_decl:	params_decl ',' param_decl
+				| param_decl
 				| /* empty */
 param_decl: TYPE IDENT
 
 ret_declaration:	expression
-					| '[' params_c expression ']'
+					| '['  param_decl ']'
+					| '['  params_decl ',' param_decl ']'
 
 block:	'{' statements '}'
 
@@ -109,7 +109,6 @@ declaration:	TYPE IDENT
 expression:	unary_operation
 			| binary_operation
 			| ternary_operation
-const:	FLOAT_CONST
 member: member DOT IDENT
 		| IDENT
 
@@ -118,7 +117,7 @@ unary_operation:	MINUS unary_operation
 				|	'(' expression ')'
 				|	function_call
 				|	unary_operation DOT member
-				|	const
+				|	FLOAT_CONST
 				|	IDENT
 
 
@@ -138,13 +137,14 @@ binary_operation:	expression	PLUS	expression
 ternary_operation: expression '?' expression ':' expression
 
 function_call:	IDENT '(' params ')'
-				| TYPE '(' params ')'
+				| constructor
 				| DOUBLE_BARS expression DOUBLE_BARS %prec LENGTH
-params:	params_c expression
+params:	params ',' expression
+		| expression
 		| /* empty */
-
-params_c:	params_c expression ','
-			| /* empty */
+constructor:	FLOAT '(' expression ')'
+			|	VEC '(' params ')'
+			|	MAT '(' params ')'
 
 %%
 
