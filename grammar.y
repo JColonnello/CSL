@@ -53,64 +53,64 @@ int yydebug=1;
 
 %%
 
-S: S translation_unit
- | /* empty */
+S:		S translation_unit
+ 	|	/* empty */;
 
-translation_unit: function_declaration
+translation_unit:	function_declaration;
 
-function_declaration:	TYPE IDENT '(' params_decl ')' ASSIGN ret_declaration
-						| TYPE IDENT '(' params_decl ')' ASSIGN ret_declaration block
-						| VOID IDENT '(' params_decl ')' block
+function_declaration:		TYPE IDENT '(' params_decl ')' ASSIGN ret_declaration
+						|	TYPE IDENT '(' params_decl ')' ASSIGN ret_declaration block
+						|	VOID IDENT '(' params_decl ')' block;
 
-TYPE: FLOAT | VEC | MAT
+TYPE:	FLOAT | VEC | MAT;
 
-params_decl:	params_decl ',' param_decl
-				| param_decl
-				| /* empty */
-param_decl: TYPE IDENT
+params_decl:		params_decl ',' param_decl
+				|	param_decl
+				|	/* empty */;
+param_decl:	TYPE IDENT;
 
-ret_declaration:	expression
-					| '['  param_decl ']'
-					| '['  params_decl ',' param_decl ']'
+ret_declaration:		expression
+					|	'['  param_decl ']'
+					|	'['  params_decl ',' param_decl ']';
 
-block:	'{' statements '}'
+block:	'{' statements '}';
 
-simple_statement:	';'
-					| RETURN ';'
-					| declaration ';'
-					| assignment ';'
-statements:	statements statement
-			| /* empty */
-statement:	simple_statement
-			| block
-			| IF '(' expression ')' statement %prec IF
-			| IF '(' expression ')' statement ELSE statement
-			| FOR '(' declaration ';' expression ';' assignment ')' statement_break
+simple_statement:		';'
+					|	RETURN ';'
+					|	declaration ';'
+					|	assignment ';';
+statements:		statements statement
+			|	/* empty */;
+statement:		simple_statement
+			|	block
+			|	IF '(' expression ')' statement %prec IF
+			|	IF '(' expression ')' statement ELSE statement
+			|	FOR '(' declaration ';' expression ';' assignment ')' statement_break;
 
-statement_break:	simple_statement
-					| block_break
-					| IF '(' expression ')' statement_break %prec IF
-					| IF '(' expression ')' statement_break ELSE statement_break
-					| FOR '(' declaration ';' expression ';' assignment ')' statement_break
-					| BREAK ';'
-block_break:	'{' statements_break '}'
-statements_break:	statements_break statement_break
-					| /* empty */
+statement_break:		simple_statement
+					|	block_break
+					|	IF '(' expression ')' statement_break %prec IF
+					|	IF '(' expression ')' statement_break ELSE statement_break
+					|	FOR '(' declaration ';' expression ';' assignment ')' statement_break
+					|	BREAK ';';
+block_break:	'{' statements_break '}';
+statements_break:		statements_break statement_break
+					|	/* empty */;
 
-assignment:	member ASSIGN expression
-			| member PROD_ASSIGN expression
-			| member DIV_ASSIGN expression
-			| member PLUS_ASSIGN expression
-			| member MINUS_ASSIGN expression
+assignment:		member ASSIGN expression
+			|	member PROD_ASSIGN expression
+			|	member DIV_ASSIGN expression
+			|	member PLUS_ASSIGN expression
+			|	member MINUS_ASSIGN expression;
 
 declaration:	TYPE IDENT
-				| TYPE IDENT ASSIGN expression
+			|	TYPE IDENT ASSIGN expression;
 
-expression:	unary_operation
-			| binary_operation
-			| ternary_operation
-member: member DOT IDENT
-		| IDENT
+expression:		unary_operation
+			|	binary_operation
+			|	ternary_operation;
+member:			member DOT IDENT
+			|	IDENT;
 
 unary_operation:	MINUS unary_operation
 				|	PLUS unary_operation
@@ -118,33 +118,33 @@ unary_operation:	MINUS unary_operation
 				|	function_call
 				|	unary_operation DOT member
 				|	FLOAT_CONST
-				|	IDENT
+				|	IDENT;
 
 
-binary_operation:	expression	PLUS	expression
-				|	expression	MINUS	expression
-				|	expression	PROD	expression
-				|	expression	DIV		expression
-				|	expression	MAX		expression
-				|	expression	MIN		expression
-				|	expression	LT		expression
-				|	expression	GT		expression
-				|	expression	LE		expression
-				|	expression	GE		expression
-				|	expression	DOUBLE_BARS		expression
-				|	expression	AND		expression
+binary_operation:	expression	PLUS		expression
+				|	expression	MINUS		expression
+				|	expression	PROD		expression
+				|	expression	DIV			expression
+				|	expression	MAX			expression
+				|	expression	MIN			expression
+				|	expression	LT			expression
+				|	expression	GT			expression
+				|	expression	LE			expression
+				|	expression	GE			expression
+				|	expression	DOUBLE_BARS	expression
+				|	expression	AND			expression;
 
-ternary_operation: expression '?' expression ':' expression
+ternary_operation:	expression '?' expression ':' expression;
 
-function_call:	IDENT '(' params ')'
-				| constructor
-				| DOUBLE_BARS expression DOUBLE_BARS %prec LENGTH
-params:	params ',' expression
-		| expression
-		| /* empty */
-constructor:	FLOAT '(' expression ')'
-			|	VEC '(' params ')'
-			|	MAT '(' params ')'
+function_call:		IDENT '(' params ')'
+				|	constructor
+				|	DOUBLE_BARS expression DOUBLE_BARS %prec LENGTH;
+params:		params ',' expression
+		|	expression
+		|	/* empty */;
+constructor:		FLOAT '(' expression ')'
+				|	VEC '(' params ')'
+				|	MAT '(' params ')';
 
 %%
 
