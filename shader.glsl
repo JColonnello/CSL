@@ -311,7 +311,7 @@ vec2 opU( vec2 d1, vec2 d2 )
 
 //------------------------------------------------------------------
 
-#define ZERO (min(iFrame,0))
+#define ZERO (min(float(iFrame),0.))
 
 //------------------------------------------------------------------
 
@@ -407,7 +407,7 @@ vec2 raycast( in vec3 ro, in vec3 rd )
         tmax = min(tb.y,tmax);
 
         float t = tmin;
-        for( int i=0; i<70 && t<tmax; i++ )
+        for( float i=0.; i<70. && t<tmax; i++ )
         {
             vec2 h = map( ro+rd*t );
             if( abs(h.x)<(0.0001*t) )
@@ -430,7 +430,7 @@ float calcSoftshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax )
 
     float res = 1.0;
     float t = mint;
-    for( int i=ZERO; i<24; i++ )
+    for( float i=ZERO; i<24.; i++ )
     {
 		float h = map( ro + rd*t ).x;
         float s = clamp(8.0*h/t,0.0,1.0);
@@ -444,7 +444,7 @@ float calcSoftshadow( in vec3 ro, in vec3 rd, in float mint, in float tmax )
 // http://iquilezles.org/www/articles/normalsSDF/normalsSDF.htm
 vec3 calcNormal( in vec3 pos )
 {
-#if 0
+#if 1
     vec2 e = vec2(1.0,-1.0)*0.5773*0.0005;
     return normalize( e.xyy*map( pos + e.xyy ).x + 
 					  e.yyx*map( pos + e.yyx ).x + 
@@ -453,7 +453,7 @@ vec3 calcNormal( in vec3 pos )
 #else
     // inspired by tdhooper and klems - a way to prevent the compiler from inlining map() 4 times
     vec3 n = vec3(0.0);
-    for( int i=ZERO; i<4; i++ )
+    for( float i=ZERO; i<4.; i++ )
     {
         vec3 e = 0.5773*(2.0*vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))-1.0);
         n += e*map(pos+0.0005*e).x;
@@ -467,7 +467,7 @@ float calcAO( in vec3 pos, in vec3 nor )
 {
 	float occ = 0.0;
     float sca = 1.0;
-    for( int i=ZERO; i<5; i++ )
+    for( float i=ZERO; i<5.; i++ )
     {
         float h = 0.01 + 0.12*float(i)/4.0;
         float d = map( pos + h*nor ).x;
@@ -592,8 +592,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
     vec3 tot = vec3(0.0);
 #if AA>1
-    for( int m=ZERO; m<AA; m++ )
-    for( int n=ZERO; n<AA; n++ )
+    for( float m=ZERO; m<float(AA); m++ )
+    for( float n=ZERO; n<float(AA); n++ )
     {
         // pixel coordinates
         vec2 o = vec2(float(m),float(n)) / float(AA) - 0.5;

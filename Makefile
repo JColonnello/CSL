@@ -6,7 +6,7 @@ TARGET := csl
 SOURCES := $(shell find $(SOURCE_DIR)/ -type f -name "*.c")
 OBJS := $(SOURCES:%.c=$(BUILD_DIR)/%.o)
 DEP_FLAGS := -MMD -MP
-CFLAGS += -g -I $(GENERATED_DIR) $(DEP_FLAGS)
+CFLAGS += -g -std=gnu11 -I$(GENERATED_DIR) -I$(SOURCE_DIR) $(DEP_FLAGS)
 OBJS_GRAMMAR := $(BUILD_DIR)/$(GENERATED_DIR)/grammar.tab.o $(BUILD_DIR)/$(GENERATED_DIR)/grammar.o
 ifeq ($(DEBUG),1)
 BISON_DEBUG := --debug -r states,solved
