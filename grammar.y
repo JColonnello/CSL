@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <expressions.h>
 #include <functions.h>
+#include <member.h>
+#include <statement.h>
 
 #define check(x) do { if(!x) \
 { yyerror("Semantic error"); YYERROR; } } while(0)
@@ -29,9 +31,14 @@ int yydebug=1;
 
 %union {
 	Expression *expression;
+	AssignmentTarget *lvalue;
+	Statement *statement;
 	List *list;
     char *str;
 	float num;
+	enum DataType type;
+	FunctionDeclaration *function;
+	ParameterDeclaration *parameter;
 }
 %type <str> IDENT
 %type <expression> constructor
@@ -40,7 +47,24 @@ int yydebug=1;
 %type <expression> binary_operation
 %type <expression> ternary_operation
 %type <expression> function_call
+%type <lvalue> member
 %type <list> params
+%type <statement> assignment
+%type <statement> declaration
+%type <statement> block
+%type <statement> block_break
+%type <statement> simple_statement
+%type <statement> statement
+%type <statement> statement_break
+%type <list> statements
+%type <list> statements_break
+%type <type> type
+%type <function> function_declaration
+%type <list> params_decl
+%type <parameter> param_decl
+%type <expression> ret_declaration
+%type <function> translation_unit
+%type <list> S
 
 %token FLOAT VEC MAT VOID
 %token RETURN
@@ -69,63 +93,115 @@ int yydebug=1;
 %%
 
 S:		S translation_unit
- 	|	/* empty */;
+			{ List_add($1, $2); }
+ 	|	/* empty */
+	 		{ $$ = List_init(); }
+	;
 
 translation_unit:	function_declaration;
 
 function_declaration:		type IDENT '(' params_decl ')' ASSIGN ret_declaration
+								{ $$ = createFunctionDecl($1, $2, $4, $7, NULL); }
 						|	type IDENT '(' params_decl ')' ASSIGN ret_declaration block
-						|	VOID IDENT '(' params_decl ')' block;
+								{ $$ = createFunctionDecl($1, $2, $4, $7, $8); }
+						|	VOID IDENT '(' params_decl ')' block
+								{ $$ = createFunctionDecl(TYPE_NONE, $2, $4, NULL, $6); }
+						;
 
-type:	FLOAT | VEC | MAT;
+type:		FLOAT
+				{ $$ = TYPE_FLOAT; }
+		|	VEC
+				{ $$ = TYPE_VECTOR; }
+		|	MAT
+				{ $$ = TYPE_MATRIX; }
+		;
 
 params_decl:		params_decl ',' param_decl
+						{ List_add($1, $3);	}
 				|	param_decl
-				|	/* empty */;
-param_decl:	type IDENT;
+						{ $$ = List_init(); List_add($$, $1); }
+				|	/* empty */
+						{ $$ = List_init(); }
+				;
+param_decl:	type IDENT
+				{ $$ = createParamDecl($1, $2); }
+			;
 
 ret_declaration:		expression
-					|	'['  param_decl ']'
-					|	'['  params_decl ',' param_decl ']';
+					// |	'['  param_decl ']'
+					// |	'['  params_decl ',' param_decl ']'
+				;
 
-block:	'{' statements '}';
+block:	'{' statements '}'
+			{ $$ = createBlock($2); }
+		;
 
-simple_statement:		';'
-					|	RETURN ';'
+simple_statement:		RETURN ';'
+							{ $$ = createSimple(ST_RET); }
 					|	declaration ';'
-					|	assignment ';';
+					|	assignment ';'
+					;
 statements:		statements statement
-			|	/* empty */;
+					{ List_add($1, $2); }
+			|	/* empty */
+					{ $$ = List_init(); }
+			;
 statement:		simple_statement
 			|	block
 			|	IF '(' expression ')' statement %prec IF
+					{ $$ = createIf($3, $5, NULL); }
 			|	IF '(' expression ')' statement ELSE statement
-			|	FOR '(' declaration ';' expression ';' assignment ')' statement_break;
+					{ $$ = createIf($3, $5, $7); }
+			|	FOR '(' declaration ';' expression ';' assignment ')' statement_break
+					{ $$ = createFor($3, $5, $7, $9); }
+			;
 
 statement_break:		simple_statement
 					|	block_break
 					|	IF '(' expression ')' statement_break %prec IF
+							{ $$ = createIf($3, $5, NULL); }
 					|	IF '(' expression ')' statement_break ELSE statement_break
+							{ $$ = createIf($3, $5, $7); }
 					|	FOR '(' declaration ';' expression ';' assignment ')' statement_break
-					|	BREAK ';';
-block_break:	'{' statements_break '}';
+							{ $$ = createFor($3, $5, $7, $9); }
+					|	BREAK ';'
+							{ $$ = createSimple(ST_BREAK); }
+					;
+block_break:	'{' statements_break '}'
+					{ $$ = createBlock($2); }
+				;
 statements_break:		statements_break statement_break
-					|	/* empty */;
+							{ List_add($1, $2); }
+					|	/* empty */
+							{ $$ = List_init(); }
+					;
 
 assignment:		member ASSIGN expression
+					{ $$ = createAssignment($1, $3, OP_NONE); }
 			|	member PROD_ASSIGN expression
+					{ $$ = createAssignment($1, $3, OP_PROD); }
 			|	member DIV_ASSIGN expression
+					{ $$ = createAssignment($1, $3, OP_DIV); }
 			|	member PLUS_ASSIGN expression
-			|	member MINUS_ASSIGN expression;
+					{ $$ = createAssignment($1, $3, OP_PLUS); }
+			|	member MINUS_ASSIGN expression
+					{ $$ = createAssignment($1, $3, OP_MINUS); }
+			;
+member:			IDENT DOT IDENT
+					{ $$ = createAssignmentLValue($1, $3); }
+			|	IDENT
+					{ $$ = createAssignmentLValue($1, NULL); }
+			;
 
 declaration:	type IDENT
-			|	type IDENT ASSIGN expression;
+					{ $$ = createDeclaration($1, $2, NULL); }
+			|	type IDENT ASSIGN expression
+					{ $$ = createDeclaration($1, $2, $4); }
+			;
 
 expression:		unary_operation
 			|	binary_operation
 			|	ternary_operation;
-member:			member DOT IDENT
-			|	IDENT;
 
 unary_operation:	MINUS unary_operation
 						{ $$ = createOperation(OP_UMINUS, $2); }
@@ -141,7 +217,8 @@ unary_operation:	MINUS unary_operation
 				|	FLOAT_CONST
 						{ $$ = createFloat($1); }
 				|	IDENT
-						{ $$ = createSymbol($1); };
+						{ $$ = createSymbol($1); }
+				;
 
 
 binary_operation:	expression	PLUS		expression
@@ -167,29 +244,33 @@ binary_operation:	expression	PLUS		expression
 				|	expression	DOUBLE_BARS	expression
 						{ $$ = createOperation(OP_DOUBLE_BARS, $1, $3); }
 				|	expression	AND			expression
-						{ $$ = createOperation(OP_AND, $1, $3); };
+						{ $$ = createOperation(OP_AND, $1, $3); }
+				;
 
 ternary_operation:	expression '?' expression ':' expression
-						{ $$ = createOperation(OP_CONDITIONAL, $1, $3, $5); };
+						{ $$ = createOperation(OP_CONDITIONAL, $1, $3, $5); }
+					;
 
 function_call:		IDENT '(' params ')'
 						{ $$ = createCall($1, $3); }
 				|	constructor
-						{ $$ = $1; };
+				;
 
 params:		params ',' expression
 				{ List_add($1, $3);	}
 		|	expression
 				{ $$ = List_init(); List_add($$, $1); }
 		|	/* empty */
-				{ $$ = List_init(); };
+				{ $$ = List_init(); }
+		;
 
 constructor:		FLOAT '(' expression ')'
 						{ $$ = createConstructorSingle(TYPE_FLOAT, $3); check($$); }
 				|	VEC '(' params ')'
 						{ $$ = createConstructor(TYPE_VECTOR, $3); check($$); }
 				|	MAT '(' params ')'
-						{ $$ = createConstructor(TYPE_MATRIX, $3); check($$); };
+						{ $$ = createConstructor(TYPE_MATRIX, $3); check($$); }
+				;
 
 %%
 

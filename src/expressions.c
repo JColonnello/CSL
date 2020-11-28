@@ -68,6 +68,7 @@ Expression *_createOperation(enum Operation operation, Expression *op1, Expressi
 		case OP_PARENTHESIS:
 			break;
 		
+		case OP_NONE:
 		case OP_CONST: case OP_CONSTRUCTOR: 
 		case OP_SYMBOL: case OP_MEMBER:
 			return NULL;

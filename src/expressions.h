@@ -6,6 +6,7 @@ typedef struct Expression Expression;
 
 enum Operation
 {
+	OP_NONE,
 	OP_CONSTRUCTOR,
 	OP_CONDITIONAL,
 	OP_PLUS,

@@ -1,6 +1,9 @@
 %{
 #include <string.h>
 #include <expressions.h>
+#include <member.h>
+#include <statement.h>
+#include <functions.h>
 #include "grammar.tab.h"
 %}
 %option yylineno
