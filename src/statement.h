@@ -60,3 +60,4 @@ Statement *createFor(Statement *declaration, Expression *condition, Statement *i
 Statement *createBlock(List *list);
 Statement *createSimple(enum StatementType type);
 Statement *createDeclaration(enum DataType type, char *symbol, Expression *value);
+

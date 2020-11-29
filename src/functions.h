@@ -1,7 +1,6 @@
 #pragma once
 #include <expressions.h>
 #include <list.h>
-#include <statement.h>
 
 typedef struct FunctionData FunctionData;
 struct FunctionData
@@ -17,8 +16,9 @@ struct ParameterDeclaration
 	char *name;
 };
 
-typedef struct FunctionDeclaration FunctionDeclaration;
-struct FunctionDeclaration
+#include <statement.h>
+typedef struct FunctionDefinition FunctionDefinition;
+struct FunctionDefinition
 {
 	enum DataType returnType;
 	char *name;
@@ -29,5 +29,6 @@ struct FunctionDeclaration
 
 Expression *createCall(char *symbol, List *params);
 ParameterDeclaration *createParamDecl(enum DataType type, char *name);
-FunctionDeclaration *createFunctionDecl(enum DataType returnType, char *name, 
+FunctionDefinition *createFunctionDecl(enum DataType returnType, char *name, 
 										List *params, Expression *retDecl, Statement *body);
+void printFunctionDefinition(FunctionDefinition *function);

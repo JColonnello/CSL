@@ -28,6 +28,7 @@ enum Operation
 	OP_CONST,
 	OP_MEMBER,
 	OP_SYMBOL,
+	OP_CALL,
 };
 
 struct Expression
@@ -49,3 +50,5 @@ Expression *_createOperation(enum Operation operation, Expression *op1, Expressi
 Expression *createFloat(float value);
 Expression *createMember(Expression *base, char *member);
 Expression *createSymbol(char *ident);
+const char *getOpString(enum Operation);
+void printExpression(Expression *);

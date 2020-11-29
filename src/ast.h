@@ -1,5 +1,6 @@
 #pragma once
 
+#include "list.h"
 enum DataType
 {
 	TYPE_NONE,
@@ -8,3 +9,6 @@ enum DataType
 	TYPE_MATRIX,
 	TYPE_LOGIC,
 };
+
+void generateOutput(List *translations);
+const char *getTypeString(enum DataType type);

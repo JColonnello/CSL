@@ -311,7 +311,7 @@ vec2 opU( vec2 d1, vec2 d2 )
 
 //------------------------------------------------------------------
 
-#define ZERO (min(float(iFrame),0.))
+#define ZERO 0.
 
 //------------------------------------------------------------------
 
@@ -579,7 +579,7 @@ mat3 setCamera( in vec3 ro, in vec3 ta, float cr )
     return mat3( cu, cv, cw );
 }
 
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
+void main()
 {
     vec2 mo = iMouse.xy/iResolution.xy;
 	float time = 32.0 + iTime*1.5;
@@ -597,17 +597,17 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     {
         // pixel coordinates
         vec2 o = vec2(float(m),float(n)) / float(AA) - 0.5;
-        vec2 p = (2.0*(fragCoord+o)-iResolution.xy)/iResolution.y;
+        vec2 p = (2.0*(gl_FragCoord.xy+o)-iResolution.xy)/iResolution.y;
 #else    
-        vec2 p = (2.0*fragCoord-iResolution.xy)/iResolution.y;
+        vec2 p = (2.0*gl_FragCoord.xy-iResolution.xy)/iResolution.y;
 #endif
 
         // ray direction
         vec3 rd = ca * normalize( vec3(p,2.5) );
 
          // ray differentials
-        vec2 px = (2.0*(fragCoord+vec2(1.0,0.0))-iResolution.xy)/iResolution.y;
-        vec2 py = (2.0*(fragCoord+vec2(0.0,1.0))-iResolution.xy)/iResolution.y;
+        vec2 px = (2.0*(gl_FragCoord.xy+vec2(1.0,0.0))-iResolution.xy)/iResolution.y;
+        vec2 py = (2.0*(gl_FragCoord.xy+vec2(0.0,1.0))-iResolution.xy)/iResolution.y;
         vec3 rdx = ca * normalize( vec3(px,2.5) );
         vec3 rdy = ca * normalize( vec3(py,2.5) );
         
@@ -626,5 +626,5 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     tot /= float(AA*AA);
 #endif
     
-    fragColor = vec4( tot, 1.0 );
+    gl_FragColor = vec4( tot, 1.0 );
 }

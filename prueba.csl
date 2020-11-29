@@ -188,7 +188,7 @@ float sdCappedCone( vec p, float h, float r1, float r2 ) = s*sqrt( dot2(ca) min 
 	
 	vec k1 = vec(r2,h);
 	vec k2 = vec(r2-r1,2.0*h);
-	vec ca = vec(q.x-(q.x min (q.y < 0.0)?r1:r2), abs(q.y)-h);
+	vec ca = vec(q.x-(q.x min ((q.y < 0.0)?r1:r2)), abs(q.y)-h);
 	vec cb = q - k1 + k2*clamp( dot(k1-q,k2)/dot2(k2), 0.0, 1.0 );
 	float s = (cb.x < 0.0 && ca.y < 0.0) ? -1.0 : 1.0;
 }
@@ -202,7 +202,7 @@ float sdCappedCone(vec p, vec a, vec b, float ra, float rb) = res
 
 	float x = sqrt( papa - paba*paba*baba );
 
-	float cax = 0.0 max x-((paba<0.5)?ra:rb);
+	float cax = 0.0 max (x-((paba<0.5)?ra:rb));
 	float cay = abs(paba-0.5)-0.5;
 
 	float k = rba*rba + baba;
@@ -213,13 +213,13 @@ float sdCappedCone(vec p, vec a, vec b, float ra, float rb) = res
 	
 	float s = (cbx < 0.0 && cay < 0.0) ? -1.0 : 1.0;
 	
-	float res = s*sqrt(	cax*cax + cay*cay*baba
+	float res = s*sqrt(	(cax*cax + cay*cay*baba)
 							min
-						cbx*cbx + cby*cby*baba);
+						(cbx*cbx + cby*cby*baba));
 }
 
 // c is the sin/cos of the desired cone angle
-float sdSolidAngle(vec pos, vec c, float ra) = l max m*sign(c.y*p.x-c.x*p.y)
+float sdSolidAngle(vec pos, vec c, float ra) = l max (m*sign(c.y*p.x-c.x*p.y))
 {
 	vec p = vec( ||pos.xz||, pos.y );
 	float l = ||p|| - ra;
@@ -282,7 +282,7 @@ vec opU( vec d1, vec d2 ) = (d1.x<d2.x) ? d1 : d2
 
 //------------------------------------------------------------------
 
-//#define ZERO (iFrame min 0)
+//#define ZERO 0
 
 //------------------------------------------------------------------
 
@@ -291,7 +291,7 @@ vec map( vec pos ) = res
     vec res = vec( 1e10, 0.0 );
 
     {
-      res = opU( res, vec( sdSphere(    pos-vec(-2.0,0.25, 0.0), 0.25 ), 26.9 ) );
+      res = opU( res, vec( sdSphere(    pos-vec(-2.0,0.25, 0.0), 1 ), 26.9 ) );
     }
 
     // bounding box
@@ -323,7 +323,7 @@ vec map( vec pos ) = res
 	res = opU( res, vec( sdPyramid(    pos-vec(-1.0,-0.6,-3.0), 1.0 ), 13.56 ) );
 	res = opU( res, vec( sdOctahedron( pos-vec(-1.0,0.15,-2.0), 0.35 ), 23.56 ) );
     res = opU( res, vec( sdTriPrism(   pos-vec(-1.0,0.15,-1.0), vec(0.3,0.05) ),43.5 ) );
-    res = opU( res, vec( sdEllipsoid(  pos-vec(-1.0,0.25, 0.0), vec(0.2, 0.25, 0.05) ), 43.17 ) );
+    res = opU( res, vec( sdEllipsoid(  pos-vec(-1.0,0.25, 0.0), vec(0.2, 0.25, 0.05, 1) ), 43.17 ) );
 	res = opU( res, vec( sdRhombus(   (pos-vec(-1.0,0.34, 1.0)).xzy, 0.15, 0.25, 0.04, 0.08 ),17.0 ) );
     }
 
@@ -396,7 +396,7 @@ float calcSoftshadow( vec ro, vec rd, float mint, float tmax ) = clamp( res, 0.0
 
     float res = 1.0;
     float t = mint;
-    for( float i=(iFrame min 0); i<24; i+=1 )
+    for( float i=0; i<24; i+=1 )
     {
 		float h = map( ro + rd*t ).x;
         float s = clamp(8.0*h/t,0.0,1.0);
@@ -420,7 +420,7 @@ float calcAO( vec pos, vec nor ) = clamp( 1.0 - 3.0*occ, 0.0, 1.0 ) * (0.5+0.5*n
 {
 	float occ = 0.0;
     float sca = 1.0;
-    for( float i=(iFrame min 0); i<5; i+=1 )
+    for( float i=0; i<5; i+=1 )
     {
         float h = 0.01 + 0.12*float(i)/4.0;
         float d = map( pos + h*nor ).x;
@@ -440,7 +440,7 @@ float checkersGradBox( vec p, vec dpdx, vec dpdy ) = 0.5 - 0.5*i.x*i.y
     // xor pattern
 }
 
-vec render( vec ro, vec rd, vec rdx, vec rdy ) = vec( clamp(col,0.0,1.0) )
+vec render( vec ro, vec rd, vec rdx, vec rdy ) = clamp(col,0.0,1.0)
 { 
     // background
     vec col = vec(0.7, 0.7, 0.9) - (rd.y max 0.0)*0.3;
@@ -529,6 +529,7 @@ mat setCamera( vec ro, vec ta, float cr ) = mat( cu, cv, cw )
 
 void main()
 {
+    float AA = 2;
     vec mo = iMouse.xy/iResolution.xy;
 	float time = 32.0 + iTime*1.5;
 
@@ -539,25 +540,51 @@ void main()
     mat ca = setCamera( ro, ta, 0.0 );
 
     vec tot = vec(0.0);
-//#if AA>1
-    for( float m=(iFrame min 0); m<AA; m+=1 )
-    for( float n=(iFrame min 0); n<AA; n+=1 )
+    if (AA > 1)
+        for( float m=0; m<AA; m+=1 )
+        for( float n=0; n<AA; n+=1 )
+        {
+            // pixel coordinates
+            vec o = vec(float(m),float(n)) / float(AA) - 0.5;
+            vec p = (2.0*(gl_FragCoord+o)-iResolution.xy)/iResolution.y;
+
+            // ray direction
+            p.z = 2.5;
+            vec rd = ca * normalize( p );
+
+            // ray differentials
+            vec px = (2.0*(gl_FragCoord+vec(1.0,0.0))-iResolution.xy)/iResolution.y;
+            vec py = (2.0*(gl_FragCoord+vec(0.0,1.0))-iResolution.xy)/iResolution.y;
+            px.z = 2.5;
+            py.z = 2.5;
+            vec rdx = ca * normalize( px );
+            vec rdy = ca * normalize( py );
+            
+            // render	
+            vec col = render( ro, rd, rdx, rdy );
+
+            // gain
+            // col = col*3.0/(2.5+col);
+            
+            // gamma
+            col = pow( col, vec(0.4545) );
+
+            tot += col;
+        }
+    else
     {
-        // pixel coordinates
-        vec o = vec(float(m),float(n)) / float(AA) - 0.5;
-        vec p = (2.0*(gl_FragCoord+o)-iResolution.xy)/iResolution.y;
-//#else    
-//        vec p = (2.0*gl_FragCoord-iResolution.xy)/iResolution.y;
-//#endif
-
+        vec p = (2.0*gl_FragCoord-iResolution.xy)/iResolution.y;
         // ray direction
-        vec rd = ca * normalize( vec(p,2.5) );
+        p.z = 2.5;
+        vec rd = ca * normalize( p );
 
-         // ray differentials
+        // ray differentials
         vec px = (2.0*(gl_FragCoord+vec(1.0,0.0))-iResolution.xy)/iResolution.y;
         vec py = (2.0*(gl_FragCoord+vec(0.0,1.0))-iResolution.xy)/iResolution.y;
-        vec rdx = ca * normalize( vec(px,2.5) );
-        vec rdy = ca * normalize( vec(py,2.5) );
+        px.z = 2.5;
+        py.z = 2.5;
+        vec rdx = ca * normalize( px );
+        vec rdy = ca * normalize( py );
         
         // render	
         vec col = render( ro, rd, rdx, rdy );
@@ -565,14 +592,16 @@ void main()
         // gain
         // col = col*3.0/(2.5+col);
         
-		// gamma
+        // gamma
         col = pow( col, vec(0.4545) );
 
         tot += col;
-//#if AA>1
     }
-    tot /= float(AA*AA);
-//#endif
+
+
+    if(AA > 1)
+        tot /= float(AA*AA);
     
-    gl_FragColor = vec( tot, 1.0 );
+    tot.w = 1.;
+    gl_FragColor = tot;
 }

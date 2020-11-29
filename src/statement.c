@@ -1,5 +1,9 @@
 #include <statement.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <functions.h>
+#include <string.h>
 
 Statement *createAssignment(AssignmentTarget *target, Expression *expression, enum Operation op)
 {
@@ -75,4 +79,131 @@ Statement *createDeclaration(enum DataType type, char *symbol, Expression *value
 	statement->data = data;
 
 	return statement;
+}
+
+void printTab(int tab)
+{
+	while(tab--)
+		printf("\t");
+}
+
+bool isCompound(enum StatementType type)
+{
+	return 	type == ST_BLOCK || 
+			type ==  ST_IF || 
+			type == ST_FOR;
+}
+
+void printStatementLevel(Statement *statement, FunctionDefinition *parent, int tab)
+{
+	switch (statement->type)
+	{
+		case ST_BLOCK:
+		{
+			List *list = statement->data;
+			printTab(tab);
+			printf("{\n");
+			for(Node *node = list->first; node; node = node->next)
+			{
+				Statement *child = node->data;
+				printStatementLevel(child, parent, tab+1);
+				if(!isCompound(child->type))
+					printf(";");
+				printf("\n");
+			}
+			printTab(tab);
+			printf("}");
+			break;
+		}
+		case ST_ASSIGNMENT:
+		{
+			printTab(tab);
+			AssignmentData *data = statement->data;
+			printf("%s", data->lvalue->symbol);
+			char *member = data->lvalue->member;
+			if(member)
+			{
+				printf(".%s", member);
+			}
+			printf(" %s= ", getOpString(data->op));
+			if(member && data->op == OP_NONE && strlen(member) > 1)
+			{
+				printf("(");
+				printExpression(data->expression);
+				char suffix[] = "xyzw";
+				suffix[strlen(member)] = 0;
+				printf(").%s", suffix);
+			}
+			else
+				printExpression(data->expression);
+			break;
+		}
+		case ST_DECLARATION:
+		{
+			printTab(tab);
+			DeclarationData *data = statement->data;
+			printf("%s %s", getTypeString(data->type), data->symbol);
+			if(data->value)
+			{
+				printf(" = ");
+				printExpression(data->value);
+			}
+			break;
+		}
+		case ST_FOR:
+		{
+			printTab(tab);
+			ForData *data = statement->data;
+			printf("for (");
+			printStatementLevel(data->declaration, parent, 0);
+			printf("; ");
+			printExpression(data->condition);
+			printf("; ");
+			printStatementLevel(data->increment, parent, 0);
+			printf(")\n");
+			printStatementLevel(data->body, parent, tab+1);
+			printf("\n");
+			break;
+		}
+		case ST_IF:
+		{
+			printTab(tab);
+			IfData *data = statement->data;
+			printf("if (");
+			printExpression(data->condition);
+			printf(")\n");
+			printStatementLevel(data->then, parent, data->then->type == ST_BLOCK ? tab : tab+1);
+			if(!isCompound(data->then->type))
+				printf(";");
+			printf("\n");
+			if(data->elseThen)
+			{
+				printTab(tab);
+				printf("else\n");
+				printStatementLevel(data->elseThen, parent, data->elseThen->type == ST_BLOCK ? tab : tab+1);
+				if(isCompound(data->elseThen->type))
+					printf(";");
+			}
+			break;
+		}
+		case ST_RET:
+		{
+			printTab(tab);
+			printf("return ");
+			if(parent->returnDeclaration)
+				printExpression(parent->returnDeclaration);
+			break;
+		}
+		case ST_BREAK:
+		{
+			printTab(tab);
+			printf("break");
+			break;
+		}
+	}
+}
+
+void printStatement(Statement *statement, FunctionDefinition *parent)
+{
+	printStatementLevel(statement, parent, 0);
 }

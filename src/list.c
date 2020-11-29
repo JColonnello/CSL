@@ -15,6 +15,7 @@ void List_add(List *list, void *data)
 
 	if(list->last != NULL) list->last->next = node;
 	if(list->first == NULL) list->first = node;
+	list->last = node;
 
 	list->count++;
 }

@@ -1,5 +1,6 @@
 #include <functions.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 Expression *createCall(char *symbol, List *params)
 {
@@ -11,6 +12,7 @@ Expression *createCall(char *symbol, List *params)
 	*expression = (Expression)
 	{
 		.type = TYPE_NONE,
+		.operation = OP_CALL,
 		.data = data,
 	};
 	return expression;
@@ -25,7 +27,7 @@ ParameterDeclaration *createParamDecl(enum DataType type, char *name)
 	return decl;
 }
 
-FunctionDeclaration *createFunctionDecl(enum DataType returnType, char *name, 
+FunctionDefinition *createFunctionDecl(enum DataType returnType, char *name, 
 										List *params, Expression *retDecl, Statement *body)
 {
 	if(body != NULL && body->type != ST_BLOCK)
@@ -33,7 +35,7 @@ FunctionDeclaration *createFunctionDecl(enum DataType returnType, char *name,
 	// if(retDecl->type != returnType)
 	// 	return NULL;
 	
-	FunctionDeclaration *decl = malloc(sizeof(FunctionDeclaration));
+	FunctionDefinition *decl = malloc(sizeof(FunctionDefinition));
 	decl->returnType = returnType;
 	decl->name = name;
 	decl->params = params;
@@ -41,4 +43,32 @@ FunctionDeclaration *createFunctionDecl(enum DataType returnType, char *name,
 	decl->body = body;
 
 	return decl;
+}
+
+void printStatement(Statement *statement, FunctionDefinition *parent);
+
+void printParamDecl(List *list)
+{
+	printf("(");
+	for(Node *node = list->first; node; node = node->next)
+	{
+		ParameterDeclaration *param = node->data;
+		
+		printf("%s %s", getTypeString(param->type), param->name);
+		if(node->next)
+			printf(", ");
+	}
+	printf(")");
+}
+
+void printFunctionDefinition(FunctionDefinition *function)
+{
+	printf("%s %s", getTypeString(function->returnType), function->name);
+	printParamDecl(function->params);
+	printf("\n");
+	
+	Statement *body = function->body ? function->body : createBlock(List_init());
+	List_add(body->data, createSimple(ST_RET));
+	printStatement(body, function);
+	printf("\n");
 }

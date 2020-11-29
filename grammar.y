@@ -6,20 +6,20 @@
 #include <statement.h>
 
 #define check(x) do { if(!x) \
-{ yyerror("Semantic error"); YYERROR; } } while(0)
+{ yyerror(NULL, "Semantic error"); YYERROR; } } while(0)
 
-void yyerror (char const *s);
+void yyerror (List **tree, char const *s);
 int yylex_destroy();
 int yylex();
 extern int yylineno;
-extern FILE *yyin;
+extern FILE *yyin, *yyout;
 
 int yywrap()
 {
 	return 1;
 }
 
-void yyerror (char const *s)
+void yyerror (List **tree, char const *s)
 {
 	fprintf (stderr, "%s at line %d\n", s, yylineno);
 }
@@ -28,6 +28,7 @@ int yydebug=1;
 %}
 %define parse.error verbose
 %locations
+%parse-param { List **translations }
 
 %union {
 	Expression *expression;
@@ -37,7 +38,7 @@ int yydebug=1;
     char *str;
 	float num;
 	enum DataType type;
-	FunctionDeclaration *function;
+	FunctionDefinition *function;
 	ParameterDeclaration *parameter;
 }
 %type <str> IDENT
@@ -83,9 +84,9 @@ int yydebug=1;
 %left DOUBLE_BARS
 %left AND
 %left LT GT LE GE
-%left MAX MIN
 %left PLUS MINUS
 %left PROD DIV
+%left MAX MIN
 %nonassoc FLOAT VEC MAT
 %nonassoc LENGTH
 %left DOT
@@ -95,7 +96,7 @@ int yydebug=1;
 S:		S translation_unit
 			{ List_add($1, $2); }
  	|	/* empty */
-	 		{ $$ = List_init(); }
+	 		{ $$ = List_init(); *translations = $$; }
 	;
 
 translation_unit:	function_declaration;
@@ -280,7 +281,13 @@ void main(int argc, char *args[])
 	{
 		yyin = fopen(args[1], "r");
 	}
+	if(argc > 2)
+	{
+		freopen(args[2], "w", stdout);
+	}
 
-	yyparse();
+	List *translations;
+	yyparse(&translations);
 	yylex_destroy();
+	generateOutput(translations);
 }
