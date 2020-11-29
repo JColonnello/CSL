@@ -41,6 +41,8 @@ min					return MIN;
 \<					return LT;
 >=					return GE;
 \<=					return LE;
+==					return EQ;
+!=					return NE;
 if					return IF;
 else				return ELSE;
 for					return FOR;

@@ -55,6 +55,7 @@ Expression *_createOperation(enum Operation operation, Expression *op1, Expressi
 			// 	return NULL;
 			break;
 		case OP_LT: case OP_GT: case OP_LE: case OP_GE:
+		case OP_EQ: case OP_NE:
 			// if(op1->type != op2->type || op1->type != TYPE_FLOAT)
 			// 	return NULL;
 			resultType = TYPE_LOGIC;
@@ -149,6 +150,8 @@ const char *getOpString(enum Operation op)
 		[OP_GT] = ">",
 		[OP_LE] = "<=",
 		[OP_GE] = ">=",
+		[OP_EQ] = "==",
+		[OP_NE] = "!=",
 		[OP_DOUBLE_BARS] = "||",
 		[OP_AND] = "&&",
 		[OP_UMINUS] = "-",
@@ -213,6 +216,7 @@ void printExpression(Expression *expression)
 		case OP_PLUS: case OP_MINUS:
 		case OP_PROD: case OP_DIV:
 		case OP_LT: case OP_GT: case OP_LE: case OP_GE:
+		case OP_EQ: case OP_NE:
 		case OP_AND: case OP_DOUBLE_BARS:
 			printExpression(expression->op1);
 			printf(" %s ", getOpString(expression->operation));

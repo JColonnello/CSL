@@ -19,6 +19,8 @@ enum Operation
 	OP_GT,
 	OP_LE,
 	OP_GE,
+	OP_EQ,
+	OP_NE,
 	OP_DOUBLE_BARS,
 	OP_AND,
 	OP_UMINUS,

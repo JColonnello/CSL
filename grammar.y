@@ -72,7 +72,7 @@ int yydebug=1;
 %token IDENT
 %token DOT PROD DIV MINUS PLUS DOUBLE_BARS MAX MIN
 %token ASSIGN PROD_ASSIGN DIV_ASSIGN PLUS_ASSIGN MINUS_ASSIGN
-%token FOR IF ELSE BREAK LT GT LE GE AND
+%token FOR IF ELSE BREAK LT GT LE GE EQ NE AND
 %token <num> FLOAT_CONST
 
 %nonassoc IF
@@ -242,6 +242,10 @@ binary_operation:	expression	PLUS		expression
 						{ $$ = createOperation(OP_LE, $1, $3); }
 				|	expression	GE			expression
 						{ $$ = createOperation(OP_GE, $1, $3); }
+				|	expression	EQ			expression
+						{ $$ = createOperation(OP_EQ, $1, $3); }
+				|	expression	NE			expression
+						{ $$ = createOperation(OP_NE, $1, $3); }
 				|	expression	DOUBLE_BARS	expression
 						{ $$ = createOperation(OP_DOUBLE_BARS, $1, $3); }
 				|	expression	AND			expression
