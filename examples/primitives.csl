@@ -529,7 +529,7 @@ mat setCamera( vec ro, vec ta, float cr ) = mat( cu, cv, cw )
 
 void main()
 {
-    float AA = 2;
+    float AA = 1;
     vec mo = iMouse.xy/iResolution.xy;
 	float time = 32.0 + iTime*1.5;
 

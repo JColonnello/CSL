@@ -1,0 +1,39 @@
+vec perp2(vec i) = i {
+    i.xy = i.yx;
+    i.x = -i.x;
+}
+
+float gauss(float x) = a * exp(-(x-b)*(x-b)/(2*c*c)) {
+    float a = 1;
+    float b = 0;
+    float c = 20;
+}
+
+void main() {
+    vec uv = (gl_FragCoord.xy / iResolution.xy).xy;
+    vec col = vec(0);
+
+    vec a = vec(0.1, 0.1);
+    vec b = vec(0.5, 0.9);
+    vec c = vec(0.9, 0.1);
+
+    vec perpAB = perp2(b - a);
+    perpAB /= ||perpAB||;
+    vec perpAC = perp2(c - a);
+    perpAC /= ||perpAC||;
+    vec perpBC = perp2(c - b);
+    perpBC /= ||perpBC||;
+    float lerpX = dot(uv - a, perpAB) / dot(c - a, perpAB);
+    float lerpY = dot(uv - a, perpAC) / dot(b - a, perpAC);
+    float lerpZ = dot(uv - b, perpBC) / dot(a - b, perpBC);
+    
+    col = vec(lerpX, lerpY, lerpZ, 1);
+
+    if (lerpX < 0 || lerpY < 0 || lerpZ < 0) {
+        col.xyz = vec(0);
+    }
+
+    
+    col.w = 1;
+    gl_FragColor = col;
+}

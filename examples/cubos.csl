@@ -1,0 +1,224 @@
+// Adapted from https://www.shadertoy.com/view/Wsjfzd
+
+// Smooth HSV to RGB conversion (from https://www.shadertoy.com/view/MsS3Wc)
+vec hsv2rgb_smooth( vec c ) = c.z * mix( vec(1.0), rgb, c.y)
+{
+    vec rgb = clamp( abs(mod(c.x*6.0+vec(0.0,4.0,2.0),6.0)-3.0)-1.0, 0.0, 1.0 );
+
+	rgb = rgb*rgb*(3.0-2.0*rgb); // cubic smoothing	
+}
+
+
+mat rotationX(float angle) = mat(u, v, w) {
+    vec u = vec(1, 0, 0);
+    vec v = vec(0, cos(angle), -sin(angle));
+    vec w = vec(0, sin(angle), cos(angle));
+}
+
+mat rotationY(float angle) = mat(u, v, w) {
+    vec u = vec(cos(angle), 0, sin(angle));
+    vec v = vec(0, 1, 0);
+    vec w = vec(-sin(angle), 0, cos(angle));
+}
+
+mat rotationZ(float angle) = mat(u, v, w) {
+    vec u = vec(cos(angle), -sin(angle), 0);
+    vec v = vec(sin(angle), cos(angle), 0);
+    vec w = vec(0, 0, 1);
+}
+
+mat rotationMatrix(vec angles) = rotationZ(angles.z) * rotationY(angles.y) * rotationX(angles.x)
+
+
+float sdSphere(vec pos, float rad) = ||pos|| - rad
+
+float sdPlane(vec pos) = pos.y
+
+vec boxNormal(vec pos, vec b, float CYCLES) = norm {
+    float PI = acos(-1.);
+    vec X = vec(1, 0, 0);
+    vec Y = vec(0, 1, 0);
+    vec Z = vec(0, 0, 1);
+
+    float epsilon = 1e-3;
+    
+    vec abdD = ((abs(pos) / b) min 1) / 2;
+    vec d = clamp(pos / b, -1, 1)*0.5;
+    
+    vec uv;
+    
+    vec u;vec v;
+    float reverse = 0;
+    
+    if (abdD.x > 0.5 - epsilon){
+        uv = d.yz;
+        if (d.x < 0) {
+            reverse = 1;
+        }
+        u = Y;
+        v = Z;
+    }
+    else if (abdD.y > 0.5 - epsilon){
+        uv = d.zx;
+        if (d.y < 0) {
+            reverse = 1;
+        }
+        u = Z;
+        v = X;
+    }
+    else if (abdD.z > 0.5 - epsilon){
+        uv = d.xy;
+        if (d.z < 0) {
+            reverse = 1;
+        }
+        u = X;
+        v = Y;
+    }
+    
+    if (reverse > 0.5)
+		uv = -uv;
+    
+    //Spike height function
+    vec k = abs(cos(uv * PI * CYCLES)) * cos(uv * PI);
+    
+	float c = CYCLES;
+    vec x = uv;
+    //Derivative of spike height function
+    vec dH = -PI*abs(cos(c*PI*x))*sin(PI*x)-(c*PI*sin(2.*c*PI*x)*cos(PI*x))/(2.*abs(cos(c*PI*x)));
+    dH *= k.yx;
+    vec angles = atan(dH);
+    
+    vec right = rotationMatrix(angles.x*v) * u;
+    vec top = rotationMatrix(-angles.y*u) * v;
+    
+    vec norm;
+    norm = normalize(cross(right, top));
+    if (reverse > 0.5)
+    	norm = -normalize(cross(right, top));
+}
+
+vec sdBox( vec p, vec b, vec SPIKE_COLOR, float CYCLES ) = col
+{
+    float PI = acos(-1.);
+
+    vec q = abs(p) - b;
+    vec abdD = ((abs(p) / b) min 1) / 2;
+    vec d = clamp(p / b, -1, 1)*0.5;
+    
+    float dist = ||q max 0.0|| + (q.x max q.y max q.z min 0.0);
+    
+    float height;
+    
+    // In range: (-1, 1)
+    vec uv;
+    
+    if (abdD.x > 0.499)
+        uv = d.yz;
+    else if (abdD.y > 0.499)
+        uv = d.xz;
+    else if (abdD.z > 0.499)
+        uv = d.xy;
+    
+    //Spike height function
+    vec val = abs(cos(uv * PI * CYCLES)) * cos(uv * PI);
+    
+    height = val.x * val.y * 0.3 * ||b||;
+    //height = 0.;
+
+    dist -= height;
+    
+    float value = val.x * val.y * 2.;
+	vec col = SPIKE_COLOR * value;
+
+    col.w = dist;
+}
+
+
+vec map(vec pos, vec rayDir, vec SPIKE_COLOR, float MAX_DIST, float CYCLES) = nearest {
+	
+    vec nearest = vec(1, 0, 0.5);
+    nearest.w = MAX_DIST;
+    
+    
+    pos = mod(pos + 2, 4) - 2;
+    
+    vec box = sdBox(pos, vec(1, 1, 1), SPIKE_COLOR, CYCLES);
+    if (box.w < nearest.w) nearest = box;
+}
+
+
+vec calculateNormal(float objectId, vec position, float CYCLES) = boxNormal(position, vec(1, 1, 1), CYCLES) {
+
+    position = mod(position + 2., 4.) - 2.;
+
+}
+
+
+vec render(vec pos, vec rayDir, vec SPIKE_COLOR, float MAX_DIST, float CYCLES) = pos {
+    float MAX_ITER = 50;
+	vec obj;
+    float iter;
+    float dist = 0;
+    for (float i = 0; i < MAX_ITER; i+=1) {
+    	obj = map(pos, rayDir, SPIKE_COLOR, MAX_DIST, CYCLES);
+        
+        obj.w *= 0.3;
+        
+        dist += obj.w;
+        pos += rayDir * obj.w;
+        
+        if (obj.w < 0.0001) {
+        	iter = i;
+            break;
+        }
+    }
+}
+
+
+void main()
+{
+    float MAX_DIST = 10000;
+    float CYCLES = (sin(iTime) * 0.5 + 0.5) * 7.0 + 1.0;
+    
+	vec SPIKE_COLOR = hsv2rgb_smooth(vec(iMouse.x / iResolution.x, 1., 1.));
+    
+    // Normalized pixel coordinates (from 0 to 1)
+    vec uv = gl_FragCoord / iResolution.y;
+    // Normalized pixel coordinates (from -1 to 1)
+    vec coord = (gl_FragCoord * 2.0 - iResolution.xy) / iResolution.y;
+    
+    vec cameraAngle = vec((sin(iTime)*0.3+0.8)*-acos(-1.)/2.0*0.5, iTime);
+    //cameraAngle.x = -iMouse.y / 100.0 + (PI / 2.);
+    //cameraAngle.y = iMouse.x / 100.0;
+    mat cameraMatrix = rotationMatrix(cameraAngle);
+    
+    vec cameraPosition = cameraMatrix * -vec(0, 0, 1) * 4.0;
+    
+    
+    vec direction = cameraMatrix * vec(coord.x, coord.y, (sin(iTime*3)*0.5+0.5)*2+1);
+    direction = normalize(direction);
+
+    vec col;
+    
+    vec hitPos = render(cameraPosition, direction, SPIKE_COLOR, MAX_DIST, CYCLES);
+    
+    vec data = map(hitPos, direction, SPIKE_COLOR, MAX_DIST, CYCLES);
+
+    col = data.xyz;
+    //col *= inversesqrt(data.distance);
+    //col *= float(data.iterations) / 10.0;
+    //col *= calculateIncidence(cameraPosition, direction);
+
+
+    vec normal = calculateNormal(0, hitPos, CYCLES);
+    //normal = rotationMatrix(vec(PI/2.,0,0)) * -rayDir;
+    
+    float incidence = dot(-normal, direction) / (||normal||*||direction||);
+
+   	col *= incidence;
+    col = mix(col, vec(0.1), clamp(sqrt(||hitPos - cameraPosition|| / 100.0), 0., 1.));
+    
+    col.w = 1;
+    // Output to screen
+    gl_FragColor = col;
+}
