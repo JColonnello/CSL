@@ -83,7 +83,7 @@ int yydebug=1;
 %nonassoc '?'
 %left DOUBLE_BARS
 %left AND
-%left LT GT LE GE
+%nonassoc LT GT LE GE EQ NE
 %left PLUS MINUS
 %left PROD DIV
 %left MAX MIN
