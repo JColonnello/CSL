@@ -12,15 +12,13 @@ alpha [_A-Za-z]
 digit [0-9]
 alnum ({alpha}|{digit})
 
-%x COMMENT
 
 %%
 
 [\n\t ]
 \/\/.*\n?
-<INITIAL>"/*" BEGIN(COMMENT);
-<COMMENT>"*/" BEGIN(INITIAL);
-<COMMENT>[^*\n]+
+[/][*][^*]*[*]+([^*/][^*]*[*]+)*[/]
+[/][*]				{ yy_fatal_error("Unterminated comment"); }
 
 float				return FLOAT;
 vec					return VEC;

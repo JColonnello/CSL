@@ -1,5 +1,6 @@
 %{
 #include <stdio.h>
+#include <stdbool.h>
 #include <expressions.h>
 #include <functions.h>
 #include <member.h>
@@ -11,6 +12,7 @@
 void yyerror (List **tree, char const *s);
 int yylex_destroy();
 int yylex();
+bool success = true;
 extern int yylineno;
 extern FILE *yyin, *yyout;
 
@@ -21,6 +23,7 @@ int yywrap()
 
 void yyerror (List **tree, char const *s)
 {
+	success = false;
 	fprintf (stderr, "%s at line %d\n", s, yylineno);
 }
 
@@ -128,10 +131,7 @@ param_decl:	type IDENT
 				{ $$ = createParamDecl($1, $2); }
 			;
 
-ret_declaration:		expression
-					// |	'['  param_decl ']'
-					// |	'['  params_decl ',' param_decl ']'
-				;
+ret_declaration: expression;
 
 block:	'{' statements '}'
 			{ $$ = createBlock($2); }
@@ -279,19 +279,35 @@ constructor:		FLOAT '(' expression ')'
 
 %%
 
-void main(int argc, char *args[])
+int main(int argc, char *args[])
 {
 	if(argc > 1)
 	{
 		yyin = fopen(args[1], "r");
+		if(yyin == NULL)
+		{
+			fprintf(stderr, "Couldn't open file for reading: %s", args[1]);
+			return 1;
+		}
 	}
-	if(argc > 2)
-	{
-		freopen(args[2], "w", stdout);
-	}
+	
 
 	List *translations;
 	yyparse(&translations);
 	yylex_destroy();
-	generateOutput(translations);
+	if(success)
+	{
+		if(argc > 2)
+		{
+			if(freopen(args[2], "w", stdout) == NULL)
+			{
+				fprintf(stderr, "Couldn't open file for writing: %s", args[2]);
+				return 3;
+			}
+		}
+		generateOutput(translations);
+		return 0;
+	}	
+	else
+		return 2;
 }
