@@ -6,9 +6,6 @@
 #include <member.h>
 #include <statement.h>
 
-#define check(x) do { if(!x) \
-{ yyerror(NULL, "Semantic error"); YYERROR; } } while(0)
-
 void yyerror (List **tree, char const *s);
 int yylex_destroy();
 int yylex();
@@ -270,11 +267,11 @@ params:		params ',' expression
 		;
 
 constructor:		FLOAT '(' expression ')'
-						{ $$ = createConstructorSingle(TYPE_FLOAT, $3); check($$); }
+						{ $$ = createConstructorSingle(TYPE_FLOAT, $3); }
 				|	VEC '(' params ')'
-						{ $$ = createConstructor(TYPE_VECTOR, $3); check($$); }
+						{ $$ = createConstructor(TYPE_VECTOR, $3); }
 				|	MAT '(' params ')'
-						{ $$ = createConstructor(TYPE_MATRIX, $3); check($$); }
+						{ $$ = createConstructor(TYPE_MATRIX, $3); }
 				;
 
 %%

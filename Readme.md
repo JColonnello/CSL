@@ -56,6 +56,12 @@ Also included are several test shaders, located in the _examples_ folder. These 
 - _iMouse_, a vector with mouse coordinates in pixels up to the value of _iResolution_ ([0,0] at top-left corner)
 - _iTime_, with the elapsed time in seconds
 
+These examples can be compiled with a Makefile target:
+```shell
+make tests
+```
+The resulting '.glsl' files are located in the 'generated/examples' folder, and can be then tested with the included tool.
+
 ### Shader test
 
 Located in the 'viewer' folder, is a simple HTML application to test the compiled GLSL shaders. An online version of the one featured in this repository can be found [here](https://jcolonnello.github.io/CSL/viewer/).
