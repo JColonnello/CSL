@@ -203,3 +203,18 @@ At the same time, standard functions are already overloaded and accept different
 
 ## References
 
+- GLSL parser reference (https://github.com/nnesse/glsl-parser)
+- GLSL core reference (https://www.khronos.org/opengl/wiki/Core_Language_(GLSL))
+- GLSL control structures (http://learnwebgl.brown37.net/12_shader_language/glsl_control_structures.html)
+- Dangling else problem (http://marvin.cs.uidaho.edu/Teaching/CS445/danglingElse.html) 
+	and (https://stackoverflow.com/questions/1737460/how-to-find-shift-reduce-conflict-in-this-yacc-file)
+- C operator precedence (https://en.cppreference.com/w/c/language/operator_precedence)
+- GLSL data types (http://learnwebgl.brown37.net/12_shader_language/glsl_data_types.html)
+	and (https://www.khronos.org/opengl/wiki/Data_Type_(GLSL))
+- ThreeJs mouse input (https://stackoverflow.com/questions/55850554/how-can-i-pass-the-mouse-positions-from-js-to-shader-through-a-uniform)
+- ThreeJs API reference (https://threejs.org/docs/#api/en/materials/ShaderMaterial)
+- HTML file upload (https://stackoverflow.com/a/40580004)
+- Fragment shader visualizer (https://threejsfundamentals.org/threejs/lessons/threejs-shadertoy.html)
+- "Spiky cube" shader example (https://www.shadertoy.com/view/Wsjfzd)
+- Primitives shader example (https://www.shadertoy.com/view/Xds3zN)
+- Rain shader example (https://webgl-shaders.com/shaders/frag-rain.glsl)
