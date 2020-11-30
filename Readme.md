@@ -198,7 +198,7 @@ Standard GLSL functions are available for use (clamp, abs, normalize, etc).
 
 GLSL has a lengthy standard and imposes many restrictions. The set of features necessary to allow a complex shader to compile were a challenge.
 There were some complications when porting existing shaders to CSL due to all vectors and matrices being of the same size.
-At the same time, standard functions are already overloaded and accept different input types. This, and swizzling makes type checking complicated.
+At the same time, standard functions are already overloaded and accept different input types. This, and swizzling made symbol checking complicated.
 
 ## Future extensions
 
@@ -217,7 +217,7 @@ At the same time, standard functions are already overloaded and accept different
 - C operator precedence (https://en.cppreference.com/w/c/language/operator_precedence)
 - GLSL data types (http://learnwebgl.brown37.net/12_shader_language/glsl_data_types.html)
 	and (https://www.khronos.org/opengl/wiki/Data_Type_(GLSL))
-- ThreeJs mouse input (https://stackoverflow.com/questions/55850554/how-can-i-pass-the-mouse-positions-from-js-to-shader-through-a-uniform)
+- 'ThreeJs' mouse input (https://stackoverflow.com/questions/55850554/how-can-i-pass-the-mouse-positions-from-js-to-shader-through-a-uniform)
 - ThreeJs API reference (https://threejs.org/docs/#api/en/materials/ShaderMaterial)
 - HTML file upload (https://stackoverflow.com/a/40580004)
 - Fragment shader visualizer (https://threejsfundamentals.org/threejs/lessons/threejs-shadertoy.html)
